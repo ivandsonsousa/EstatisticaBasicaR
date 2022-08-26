@@ -1,6 +1,6 @@
 # EstatisticaBasicaR
 
-Soluções de problemas de estatística básica do livro:
+**Soluções de problemas de estatística básica do livro:**
 
 MORETTIN, Pedro A.; BUSSAB, Wilton O. Estatística básica. Saraiva Educação SA, 2017.
 
