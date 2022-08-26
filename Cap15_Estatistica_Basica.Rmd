@@ -1,0 +1,1562 @@
+---
+title: 'Estatística Básica: Capítulo 15'
+author: "Ivandson Praeiro de Sousa"
+date: '2022-06-05'
+output:
+  html_document:
+    number_sections: no
+    toc: yes
+    toc_float: yes
+    theme: cerulean
+    # highlight: spacelab
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introdução
+
+Neste capítulo[^bussab_morettin], estudamos inferência para várias populações. Mais
+especificamente, queremos comparar várias sub-populações dentro de uma
+população geral, usando a análise de variância (ANOVA). Basicamente,
+usaremos as funções `aov()` e `anova()`, do R, para obter a tabela ANOVA para um
+determinado conjundo de dados, a fim de testar a hipótese nula de que as
+médias das diversas sub-populações são iguais.
+
+
+ANOVA é um teste estatístico para estimar como uma variável dependente
+quantitativa varia de acordo com os níveis de uma ou mais variáveis
+categóricas independentes. A hipótese nula da ANOVA é que não há
+diferenças entre as médias dos diferentes níveis. Ou ainda, a ANOVA é um
+teste estatístico usado para analisar a diferença entre as médias de mais
+de dois grupos.
+
+Aqui, tratamos apenas de ANOVA de uma via (ou de um fator), o que
+significa que estamos considerando apenas os casos que temos uma única
+variável categórica (fator).
+
+A função `aov()` faz o ajuste dos dados ao modelo ANOVA. Os argumentos que
+precisamos passar são o modelo e os dados. A função `anova()` recebe como
+entrada o resultado do modelo ajustado, e fornece como saída a tabela
+ANOVA para aquele modelo.
+
+```{r, eval=FALSE}
+?aov()
+
+?anova()
+```
+
+
+[^bussab_morettin]: MORETTIN, Pedro Alberto; BUSSAB, Wilton Oliveira. **Estatística básica**. Saraiva Educação SA, 2017.
+
+## Detalhes do teste estatístico
+
+Uma das saídas da tabela ANOVA que iremos gerar é a estatística do teste, F.
+Esse teste compara a variância média entre os grupos com a variância total
+dentro dos grupos. Se a variância dentro dos grupos for menor que a variância
+entre grupos, a estatística do teste será alta e, portanto, é mais provável
+que a diferença observada seja real e não devido ao acaso. A saída da ANOVA
+também fornece uma estimativa de quanta variação na variável dependente pode
+ser explicada pela variável independente.
+
+Uma observação importante aqui é que também podemos passar o resultado da
+função aov() como argumento para a função summary(), a fim de obter a
+tabela ANOVA.
+
+
+# Carregamento dos pacotes necessários
+
+```{r, message=FALSE}
+library(dplyr)
+library(ggplot2)
+library(readxl)
+library(combinat)
+```
+
+
+# Exemplos e problemas do livro
+
+## Exemplo 15.1 (página 447)
+
+Primeiramente, fazemos a entrada dos dados do livro, os quais já passei para uma planilha de excel:
+
+```{r}
+dados = read_excel("exemplo-15.1.xlsx")
+
+dados = dados %>%
+  mutate(W = as.factor(W))
+```
+
+Agora, fazemos o teste propriamente dito, através da obtenção da tabela ANOVA:
+
+```{r}
+result = anova(aov(Y ~ W, data = dados))
+result
+```
+
+Vamos agora calcular o coeficiente de explicação para o modelo, que é dado
+pelo quociente entre a soma dos quadrados entre grupos e a soma dos quadrados totais:
+
+
+```{r}
+rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
+rsq
+```
+
+Vemos então que cerca de 10% da variância dos dados é explicada pelo fator
+sexo. Além disso, o resultado não é significativo, já que o p-valor resultou ser > 0.05. Logo, não podemos rejeitar a hipótese nula de que as médias dentro dos grupos (masculino e feminino) sejam iguais (e, portanto, iguais à média global da população). Assim, temos indício de que o fator sexo do indivíduos não influencia (ou pouco influencia) no seu tempo de reação a um estímulo visual.
+
+## Problema 3
+
+Vamos fazer a entrada dos dados da tabela, os quais estão em uma planilha de excel:
+
+```{r}
+dados = read_excel("problema15.3.xlsx")
+
+dados = dados %>%
+  mutate(x = as.factor(x))
+```
+
+Aqui, voltemos ao conteúdo da página 314 do livro (capítulo 11). O erro
+amostral que cometemos ao estimar o parâmetro $\theta$ da distribuição da
+v.a. `X` pelo estimador `T`, baseado na amostra, é dado por
+
+$$e = T - \theta$$
+
+e o erro quadrático médio (EQM) do estimador é dado por
+
+$$ EQM(T; \theta) = Var(T) + V^2 $$
+
+em que $V$ é o viés de $T$.
+
+Logo, vemos que, se o estimador é não viesado, o erro quadrático médio é igual a variância do estimador. Assim, o que precisamos fazer é calcular a variância de $\hat{\mu}$ e $\hat{\sigma}$. Aqui, vamos usar os estimadores $\bar{X}$ e $S^2$, que são ambos não viesados
+
+$$Var(\bar{X}) = \dfrac{\sigma^2}{n} $$
+
+$$ Var(S^2) = \dfrac{2\sigma^4}{n - 1} $$
+
+Como não temos os dados populacionais, mas apenas uma amostra, vamos substituir os parâmetros populacionais por seus respectivos estimadores:
+
+
+```{r}
+cat(
+  "Estimativa para o erro quadrático médio para o estimador da média:",
+  sd(dados$y)/sqrt(nrow(dados)),
+  "\n",
+  "\nEstimativa para o erro quadrático médio para o estimador da variância:",
+  2*sd(dados$y)^4/(nrow(dados) - 1)
+  )
+```
+
+ 
+
+O intervalo de confiança para a média, supondo normalidade dos dados, tem a forma:
+
+$$ IC(\mu, 95 \%) = \bar{X} \pm t_{(1-\alpha/2)} S/\sqrt{n} $$
+
+Para construção do intervalo de confiança para a variância, recordemos do capítulo 12 (página 367), que podemos escrever um intervalo de confiança para a variancia de uma normal por meio da distribuição qui-quadrado. Para isso, usamos a seguinte expressão:
+
+$$ P\left( \chi_1^2 \leq \dfrac{(n-1)S^2}{\sigma^2} \leq \chi_2^2 \right) = \gamma, $$
+
+de modo que, supondo normalidade dos dados:
+
+
+$$ \dfrac{(n-1)S^2}{\chi_2^2} \leq \sigma^2 \leq \dfrac{(n-1)S^2}{\chi_1^2}. $$
+
+
+
+```{r}
+cat("Intervalo de confiança para a média:",
+    "[",
+    mean(dados$y) + c(-1,1)*qt(0.95, nrow(dados) - 1)*sd(dados$y)/sqrt(nrow(dados)),
+    "]",
+    "\nIntervalo de confiança para a variância:",
+    "[",
+    (nrow(dados) - 1)*sd(dados$y)^2/qchisq(0.975, nrow(dados) -1),
+    (nrow(dados) - 1)*sd(dados$y)^2/qchisq(0.025, nrow(dados) -1),
+    "]"
+)
+```
+
+Para analisar os resíduos, vamos criar uma nova coluna no dataframe, contendo os erros dados conforme escrito a seguir:
+
+$$ y_i = \bar{X} + e_i \Rightarrow e_i = y_i - \bar{X}$$
+
+
+```{r}
+dados = mutate(dados, residuos = y - mean(y))
+dados
+```
+
+Vemos, portanto, que os resíduos possuem magnitude grande, de modo que esse modelo não parece apropriado.
+
+
+## Problema 4
+
+Para responder a este problema, precisamos fazer um teste anova, a fim de descobrir se o conhecimento do fator tipo de escola influencia na nota Y:
+
+
+```{r}
+result = anova(aov(y ~ x, dados))
+result
+
+rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
+
+cat(
+  "Coeficiente R2 do modelo:",
+  rsq
+  )
+```
+
+Vemos então que a variável "tipo de escola", que tem os níveis P ou O, só é responsável por cerca de 10% da variação dos dados. Além disso, no nível de 5%, não podemos rejeitar a hipótese nula de que as médias dos grupos são iguais, a despeito do tipo de escola. Em outras palavras, o resultado não é significativo, p que indica que o tipo de escola não influencia na nota da primeira prova.
+
+
+## Problema 5
+
+Primeiro, vamos fazer a leitura dos dados do exemplo 15.2:
+
+```{r}
+manha = c(4.2, 4.0, 3.1, 2.7, 2.3, 3.3, 4.1)
+tarde = c(2.7, 2.4, 2.4, 2.2, 1.9, 1.8)
+noite = c(4.6, 3.9, 3.8, 3.7, 3.6, 3.5, 3.4, 2.8)
+
+dados = data.frame(
+  desempenho = c(manha, tarde, noite), 
+  turno = c(
+    rep("D", length(manha) + length(tarde)), 
+    rep("N", length(noite))
+    )
+)
+
+dados = mutate(dados, turno = as.factor(turno))
+```
+
+Note que, na coluna turno, substituímos manhã (M) e tarde (T) por D (diurno).
+
+Agora, vamos fazer o teste estatístico:
+
+```{r}
+result = anova(aov(desempenho ~ turno, dados))
+result
+
+rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
+
+cat(
+  "Coeficiente R2 do modelo:",
+  rsq
+  )
+```
+
+Portanto, vemos que o fator turno (dia ou noite) responde por cerca de 25% da variabilidade dos desempenhos individuais dos alunos. Vemos ainda que este resultado é significativo no nível de 5%, já que o p-valor para o teste foi de aproximadamente 0.02. Assim, concluímos que o turno de estudo (M ou N) influencia no desempenho dos estudantes representados por esse conjunto de dados.
+
+
+## Problema 6
+
+Com os dados do problema, podemos calcular as médias e as variâncias dentro de cada grupo, já que temos as somas $\Sigma_i x_i$ e $\Sigma_i x_i^2$:
+
+```{r}
+n_F = 50 #número de elementos no grupo fundamental
+n_M = 20 #número de elementos no grupo médio
+xbar_F = 111.50/n_F
+xbar_M = 71/n_M
+```
+ 
+ 
+Como o problema não fornece os dados brutos, mas sim as somas $\Sigma_i x_i$ e $\Sigma_i x_i^2$, precisamos calcular os quadrados dos desvios totais e dentro dos grupos, para então calcular as grandezas da tabela ANOVA. 
+
+Vamos primeiro calcular as variâncias dentro de cada grupo e usar o resultado da página 442 (relação entre as variâncias dentro dos grupos e a soma dos quadrados dos resíduos dentro dos grupos) para calcular SQDen:
+
+```{r}
+#variâncias dentro de cada grupo
+s2_F = 259.93/n_F - xbar_F^2
+s2_M = 258.89/n_M - xbar_M^2
+
+#Soma dos quadrados dos resíduos dentro dos grupos
+SQDen = (n_F - 1)*s2_F + (n_M - 1)*s2_M
+```
+
+Vamos agora calcular a média global e a soma dos quadrados entre grupos SQEnt (página 446):
+
+
+```{r}
+#Média global
+xbar = (n_F*xbar_F + n_M*xbar_M)/(n_F + n_M)
+
+#Soma dos quadrados entre grupos
+SQEnt = n_F*(xbar_F - xbar)^2 + n_M*(xbar_M - xbar)^2
+
+#Soma dos quadrados totais,
+SQTot = SQDen + SQEnt
+```
+
+Sabemos também que, na tabela ANOVA, temos $n-1$ graus de liberdade (g.l) para a soma dos quadrados totais, $n - I = n-2$ graus de liberdade para a soma dos quadrados dentro dos grupos (resíduos) e $n - 1 - (n - I) = I - 1 = 1$ grau de liberdade para a soma dos quadrados entre grupos. Assim, temos:
+
+```{r}
+QMEnt = SQEnt/1
+QMDen = SQDen/(n_F + n_M - 2)
+QMTot = SQTot/(n_F + n_M - 1)
+```
+
+Finalmenente, vamos calcular a estatística F, o p-valor e coeficiente $R^2$:
+
+
+```{r}
+F_ = QMEnt/QMDen
+p = pf(F_, 1, n_F + n_M - 2, lower.tail = F)
+rsq = SQEnt/SQTot
+
+cat(
+  " Rsq", 
+  "\t\t",
+  " F",
+  "\t\t",
+  " p\n",
+  rsq,
+  F_,
+  p
+  )
+```
+
+Portanto, vemos que os grupos médio (M) e fundamental (F) são responsáveis por cerca de 59% da variação dos dados. Além disso, vemos que o resultado é significativo, já que o p-valor resultou ser essencialmente igual a zero. Dessa forma, conluímos que a variável grau de instrução (M ou F) tem influência sobre o rendimento dos trabalhadores analisados.
+
+
+## Problema 7
+
+Primeiro, vamos fazer a entrada dos dados:
+
+```{r}
+dados = read_excel("exemplo-15.3.xlsx")
+
+dados = mutate(dados, regime = as.factor(regime))
+```
+
+Aqui, queremos verificar se o tipo de regime tem influência sobre a perda de peso resultante. Porém, vamos reduzir o fator regime a apenas os níveis 1 e 2:
+
+
+```{r}
+dados = dados %>%
+  filter(regime != 3)
+```
+
+
+Vamos fazer o teste propriamente dito:
+
+```{r}
+result = anova(aov(peso_perdido ~ regime, dados))
+result
+
+rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
+
+cat(
+  "Coeficiente R2 do modelo:",
+  rsq
+  )
+```
+
+
+Vemos, portanto, que a variação devido aos dois grupos analisados (regimes 1 e 2) respondem por cerca de 74% da variação total nos dados. Além disso, o resultado é significativo, já que p < 0.01. Assim, concluímos que o tipo de regime adotado influenciou na perda de peso, ou seja, rejeitamos a hipótese nula de que as médias de peso perdido são iguais para os dois grupos analisados.
+
+
+## Tabela ANOVA para o exemplo 15.1, com fator idade
+
+Para calcular a tabela ANOVA para o tempo de resposta ao estímulo visual como função do fator "idade", precisamos, primeiro, transformar essa variável em um `factor`. Em seguida, fazemos o teste normalmente: 
+
+```{r}
+dados = read_excel("exemplo-15.1.xlsx")
+dados = dados %>%
+  mutate(X = as.factor(X))
+
+result = anova(aov(Y ~ X, dados))
+result
+
+rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
+
+cat(
+  "Coeficiente R2 do modelo:",
+  rsq
+  )
+```
+
+Logo, vemos que o fator idade é reponsável por cerca de 60% da variação do tempo de resposta a um estímulo visual. Além disso, também podemos notar que o resultado é significativo, já que o p-valor do teste é menor que 0.01. 
+
+Para complementar o resultado, podemos fazer box plots para a variável tempo de resposta ao estímulo (Y) para cada nível de idade:
+
+```{r}
+dados %>%
+  ggplot(aes(x = X, y = Y)) + 
+  geom_boxplot() + 
+  labs(
+    x = "idade",
+    y = "tempo de resposta",
+    title = "Tempo de resposta a um estímulo visual"
+  ) + 
+  theme(text = element_text(size = 16))
+```
+
+O gráfico reforça o que o resultado do teste mostrou, isto é, que a idade influência no tempo de resposta ao estímulo visual experimentado nos participantes do estudo.
+
+
+## Problema 8
+
+Primeiro, vamos ler novamente os dados do problema 3:
+
+```{r}
+dados = read_excel("problema15.3.xlsx")
+
+dados = dados %>%
+  mutate(z = as.factor(z))
+```
+
+Vamos lembrar de que a coluna `y` representa a nota obtida pelo aluno na primeira prova e de que o período de estudo está armazenado na variável `z`, que é categórica e tem 3 níveis: M, T e N. Assim, temos o teste:
+
+
+```{r}
+result = anova(aov(y ~ z, dados))
+result
+
+rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
+
+cat(
+  "Coeficiente R2 do modelo:",
+  rsq
+  )
+```
+
+Vemos, portanto, que o período de estudo é responsável por apenas cerca de 10% da variação dos dados. Além disso, o resultado não é significativo, já que p > 0.05. Logo, no nível de 5%, não podemos rejeitar a hipótese nula de igualdade das médias, e concluímos que o período de estudo não tem influência sobre a nota da primeira prova o caso em estudo.
+
+
+## Problema 9
+
+Aqui, semelhante ao que foi feito no problema 6, não temos o conjunto de dados, mas apenas as somas $\Sigma_i x_i$ e $\Sigma_i x_i^2$, de modo que não podemos usar as funções `aov()` e `anova()`. Novamente, primeiro vamos calcular as médias amostrais dentro de cada grupo e a média global:
+
+
+```{r}
+n_F = 50 #quantidade de elementos no fundamental
+n_M = 20 #quantidade de elementos no médio
+n_S = 10 #quantidade de elementos no superior
+xbar_F = 111.50/n_F #média do nível fundamental
+xbar_M = 71/n_M #média do nível médio
+xbar_S = 84.30/n_S #média do nível superior
+xbar = (n_F*xbar_F + n_M*xbar_M + n_S*xbar_S)/(n_F + n_M + n_S) #média geral
+```
+
+Agora, vamos calcular as variâncias:
+
+
+```{r}
+s2_F = 259.93/n_F - xbar_F^2 #Variância amostral para o nível fundamental
+s2_M = 258.89/n_M - xbar_M^2 #Variância amostral para o nível médio
+s2_S = 717.94/n_S - xbar_S^2#Variância amostral para o nível superior
+```
+
+Agora, temos informação suficiente para calcular a soma dos quadrados dentro dos grupos, entre grupos e global:
+
+
+```{r}
+SQDen = (n_F-1)*s2_F + (n_M-1)*s2_M + (n_S-1)*s2_S
+SQEnt = n_F*(xbar_F - xbar)^2 + n_M*(xbar_M - xbar)^2 + n_S*(xbar_S - xbar)^2
+SQTot = SQDen + SQEnt
+```
+
+
+Nesse caso, temos $n-1$ graus de liberdade associados à soma dos quadrados totais, $n-I= n - 3$ g.l para a soma dos quadrados dentro dos grupos e $n-1-(n-I) = I - 1 = 2$ g.l associados à soma dos quadrados entre grupos. 
+
+Finalmente, podemos calcular as estatísticas para a tabela ANOVA:
+
+
+```{r}
+QMEnt = SQEnt/2
+QMDen = SQDen/(n_F + n_M + n_S - 3)
+QMTot = SQTot/(n_F + n_M + n_S - 1)
+```
+
+
+```{r}
+F_ = QMEnt/QMDen
+p = pf(F_, 2, n_F + n_M + n_S - 3, lower.tail = F)
+rsq = SQEnt/SQTot
+
+cat(
+  " Rsq",
+  "\t\t",
+  " F",
+  "\t\t",
+  " p\n",
+  rsq,
+  F_,
+  p
+)
+```
+
+(a) De acordo com o resultado do teste, continuamos a rejeitar a hipótese nula de que o grau de escolaridade não influencia nos rendimentos médios dos indivíduos analisados. Ao inserir o nível superior para o grau de instrução, vemos que o resultado indica uma maior evidência para a influência do grau da escoladidade sobre a renda média dos indivíduos, já que cerca de `r scales::percent(rsq)` da variação dos dados é agora explicada pelo grau de escolaridade e o p-valor do teste foi essencialmente igual a zero.
+
+(b) Conforme já calculado acima, o estimador da média para o grupo com formação universitária é igual a `r xbar_S`, enquanto para os níveis fundamental e médio esses valores são iguais a `r xbar_F` e `r xbar_M`, respectivamente. Podemos determinar um intervalo de confiança para a média do grupo com nível superior (lembrando que $S_e^2 = QMDen$):
+
+
+```{r}
+df = n_F + n_M + n_S - 3 #número de graus de liberdade
+ep = sqrt(QMDen/n_S) #Erro padrão para xbar_S
+cat(
+  "Intervalo de confiança de 95% para o nível superior",
+  xbar_S + c(-1,1)*qt(0.975, df)*ep
+)
+```
+
+
+(c) Para inferir se existe diferenças entre as médias (dois a dois), podemos calcular intervalos de confiança para as diferenças entre as respectivas médias:
+
+
+```{r}
+# Cálculo do erro padrão do estimador da diferença entre as médias dos grupos superior e fundamental
+ep = sqrt(QMDen*(1/n_F + 1/n_S))
+cat(
+  "Diferença entre as médias do superior e do fundamental:",
+  xbar_S - xbar_F + c(-1,1)*qt(0.975, df)*ep
+)
+```
+
+Para determinar o intervalo de confiança para a diferença entre as médias do grupo superior e do médio, o procedimento é o mesmo feito acima, com a diferença principal no cálculo do erro padrão desse estimador:
+
+```{r}
+# Cálculo do erro padrão do estimador da diferença entre as médias dos grupos superior e médio
+ep = sqrt(QMDen*(1/n_M + 1/n_S))
+cat(
+  "Diferença entre as médias do superior e do médio:",
+  xbar_S - xbar_M + c(-1,1)*qt(0.975, df)*ep
+)
+```
+
+Como podemos ver, ambos os intervalos de confiança calculados não contêm o zero, de modo que podemos inferir que o rendimento médio dos trabalhadores com nível superior é diferente (isto é, maior) que aquele dos trabalhadores dos níveis fundamental e médio.
+
+
+## problema 10
+
+Nesse caso, queremos verificar se as médias das notas das duas marcas são iguais. Como temos apenas dois grupos (dois níveis no fator "marca"), poderíamos também fazer simplesmente um teste t, mas vamos prosseguir com a ANOVA.
+
+Primeiro, vamos criar um dataframe com os dados das notas, criando também uma segunda coluna para a respectiva marca:
+
+
+```{r}
+dados = data.frame(
+  notas = c(85, 87, 92, 80, 84, 91, 91, 92, 86, 90),
+  marca = factor(c(rep("A", 5), rep("B", 5)))
+)
+```
+
+Agora, vamos fazer o teste ANOVA propriamente dito:
+
+```{r}
+result = anova(aov(notas ~ marca, dados))
+result
+
+rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
+
+cat(
+  "Coeficiente R2 do modelo:",
+  rsq
+  )
+```
+
+Analisando apenas o p-valor do teste, vemos que o resultado não é significativo, mesmo no nível de 5%. Sendo assim, com as amostras dadas, não podemos rejeitar a hipótese nula de que as duas marcas são igualmente eficientes, em média.
+
+
+## Problema 11
+
+Aqui, vamos faze um teste ANOVA para verificar se as quantidades médias de água que passou pelas laje são iguais para os quatro grupos. Primeiro, vamos fazer a leitura dos dados:
+
+
+```{r}
+dados = read_excel("problema15.11.xlsx") %>%
+  mutate(tipo_laje = as.factor(tipo_laje))
+```
+
+Agora, vamos fazer o teste estatístico propriamente dito:
+
+
+```{r}
+result = anova(aov(q_agua ~ tipo_laje, dados))
+result
+
+rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
+
+cat(
+  "Coeficiente R2 do modelo:",
+  rsq
+  )
+```
+
+Portanto, vemos que o modelo é bom, mostrando que o tipo de laje realmente influencia bastante na quantidade de água infiltrada. Além disso, o resultado é significativo, já que p << 0.05. Portanto, rejeitamos a hipótese nula de que os 4 tipos de lajes são equivalentes.
+
+Como concluímos que pelo menos uma das médias é diferente das demais, podemos comparar as médias duas a duas, por meio da construção de intervalos de confiança para a diferença de médias, considerando ainda o fator de correção de Bonferroni. Para isso, vamos primeiro determinar as combinações possíveis com a ajuda da library `combinat`. Como temos 4 grupos (os diferentes tipos de laje), precisamos combiná-las 2 a 2:
+
+
+```{r}
+config = combn(c("I", "II", "III", "IV"), 2) #Configurações possíveis
+config
+m = ncol(config) #Número de combinações possíveis
+```
+
+Agora, vamos ver quantos elementos há em cada grupo, assim como calcular o desvio padrão amostral dos resíduos e a média de cada grupo:
+
+
+```{r}
+se = sqrt(result$`Mean Sq`[2]) #Desvio padrão dos resíduos
+
+grupos = dados %>%
+  group_by(tipo_laje) %>%
+  summarise(n = n(), xbar = mean(q_agua))
+
+grupos
+```
+
+e o quantil da t-Student para o cálculo do intervalo de confiança de 95%, considerando o fator de correção de Bonferroni:
+
+```{r}
+I = length(levels(dados$tipo_laje))#número de grupos
+n = nrow(dados)
+qb = qt(1 - (1/m)*0.05/2, df = n - I)
+```
+
+Agora, estamos em condições de determinar os intervalos de confiança para as diferenças de médias. 
+
+Nesse caso, como todos os grupos têm o mesmo tamanho, o erro padrão para o estimador da diferença entre médias será sempre o mesmo, o que simplifica os cálculos:
+
+```{r}
+#Erro padrão para a diferença entre as médias dos grupos
+ep = se*sqrt(1/5+1/5)
+
+#Comparação das médias
+cat(
+  "IC(mu1 - mu2; 95%) =",
+  grupos$xbar[1] - grupos$xbar[2] + c(-1,1)*qb*ep,
+  "\nIC(mu1 - mu3; 95%) =",
+  grupos$xbar[1] - grupos$xbar[3] + c(-1,1)*qb*ep,
+  "\nIC(mu1 - mu4; 95%) =",
+  grupos$xbar[1] - grupos$xbar[4] + c(-1,1)*qb*ep,
+  "\nIC(mu2 - mu3; 95%) =",
+  grupos$xbar[2] - grupos$xbar[3] + c(-1,1)*qb*ep,
+  "\nIC(mu2 - mu4; 95%) =",
+  grupos$xbar[2] - grupos$xbar[4] + c(-1,1)*qb*ep,
+  "\nIC(mu3 - mu4; 95%) =",
+  grupos$xbar[3] - grupos$xbar[4] + c(-1,1)*qb*ep
+)
+```
+
+Com o resultado dado acima, concluímos que:
+
+* $\mu_1 = \mu_2 > \mu_3$
+
+* $\mu_3 = \mu_4$
+
+
+## Problema 12
+
+Primeiro, vamos admitir os dados:
+
+```{r}
+dados = read_excel("problema15.12.xlsx") %>%
+  mutate(processo = as.factor(processo))
+```
+
+Esse problema é um pouco confuso, pois fala que os dados se referem a absorção de água pelo produto dentro de cada processo. Porém, existem dados negativos, o que vai dificultar a interpretação.
+
+Vamos fazer o teste ANOVA:
+
+```{r}
+result = anova(aov(q_absorvida ~ processo, dados))
+result
+
+rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
+
+cat(
+  "Coeficiente R2 do modelo:",
+  rsq
+  )
+```
+
+Logo, o resultado indica que o modelo utilizado é bom para descrever os dados, ou seja, as médias de absorção não são iguais para todos os grupos. Ainda, vemos que o resultado é significativo, já que p < 0.05.
+
+Como rejeitamos a hipótese de igualdade das médias de todos os grupos, vamos agora testar a hipótese de igualdade dois a dois, por meio da construção de intervalos de confiança para a diferença entre médias.
+
+Vamos calcular as configurações possíveis:
+
+
+```{r}
+config = combn(LETTERS[1:5], 2)
+config
+m = ncol(config) #número de configurações
+```
+
+Vamos agora conferir o número de elementos em cada grupo (nível), e ao mesmo tempo, calcular a média de cada grupo:
+
+```{r}
+grupos = dados %>%
+  group_by(processo) %>%
+  summarise(n = n(), xbar = mean(q_absorvida))
+
+grupos
+```
+
+Como vemos, temos 5 elementos em cada grupo. Agora, vamos calcular as grandezas necessárias para a construção dos IC's, que são: o número de grupos, o tamanho do conjunto de dados, o quantil da t-Student que acumula 95% de probabilidade no centro da distribuição e o desvio padrão amostral dos resíduos:
+
+
+```{r}
+n = nrow(dados) 
+I = length(levels(dados$processo)) #número de grupos
+qb = qt(1-(1/m)*0.05/2, df = n - I) #quantil
+se = sqrt(result$`Mean Sq`[2])
+```
+
+Novamente, como o tamanho dos grupos é o mesmo, o erro padrão para o estimador da diferença entre médias será o mesmo.
+
+
+```{r}
+ep = se*sqrt(1/5 + 1/5)
+```
+
+Agora, vamos fazer as 10 comparações possíveis:
+
+```{r}
+####Comparação das médias
+cat(
+  "IC(mu_A - mu_B; 95%) =",
+  grupos$xbar[1] - grupos$xbar[2] + c(-1,1)*qb*ep,
+  "\nIC(mu_A - mu_C; 95%) =",
+  grupos$xbar[1] - grupos$xbar[3] + c(-1,1)*qb*ep,
+  "\nIC(mu_A - mu_D; 95%) =",
+  grupos$xbar[1] - grupos$xbar[4] + c(-1,1)*qb*ep,
+  "\nIC(mu_A - mu_E; 95%) =",
+  grupos$xbar[1] - grupos$xbar[5] + c(-1,1)*qb*ep,
+  "\nIC(mu_B - mu_C; 95%) =",
+  grupos$xbar[2] - grupos$xbar[3] + c(-1,1)*qb*ep,
+  "\nIC(mu_B - mu_D; 95%) =",
+  grupos$xbar[2] - grupos$xbar[4] + c(-1,1)*qb*ep,
+  "\nIC(mu_B - mu_E; 95%) =",
+  grupos$xbar[2] - grupos$xbar[5] + c(-1,1)*qb*ep,
+  "\nIC(mu_C - mu_D; 95%) =",
+  grupos$xbar[3] - grupos$xbar[4] + c(-1,1)*qb*ep,
+  "\nIC(mu_C - mu_E; 95%) =",
+  grupos$xbar[3] - grupos$xbar[5] + c(-1,1)*qb*ep,
+  "\nIC(mu_D - mu_E; 95%) =",
+  grupos$xbar[4] - grupos$xbar[5] + c(-1,1)*qb*ep
+)
+```
+
+Logo, concluímos que
+
+* $\mu_A = \mu_D = \mu_E$
+
+* $\mu_B = \mu_C$
+
+
+## Problema 13
+
+Primeiro, vamos fazer a entrada dos dados, que estão em formato excel:
+
+
+```{r}
+dados = read_excel("problema15.13.xlsx")
+dados = mutate(dados, metodo = as.factor(metodo))
+```
+
+Agora, fazemos o teste:
+
+```{r}
+result = anova(aov(nota ~ metodo, dados))
+result
+
+rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
+
+cat(
+  "Coeficiente R2 do modelo:",
+  rsq
+  )
+```
+
+Conforme os resultados mostrados acima, vemos que podemos rejeitar a hipótese de que os 3 métodos são equivalentes, já que p < 0.01. Porém, o coeficiente de explicação do modelo ainda é baixo, em torno de 37%.
+
+Como rejeitamos hipótese de igualdade das 3 médias, podemos determinar os intervalos de confiança 2 a 2 para as diferenças entre médias. Nesse caso, teremos 3 combinações possíveis. Vamos começar calculando as médias de cada grupo:
+
+
+```{r}
+grupos = dados %>%
+  group_by(metodo) %>%
+  summarise(n = n(), xbar = mean(nota))
+
+grupos
+```
+
+
+Agora, vamos calcular as grandezas necessárias para a a construção dos IC's. Vamos também calcular o quantil para o intervalo de confiança de 95%, considerando o fator de correção de Bonferroni:
+
+
+```{r}
+n = nrow(dados)
+I = length(levels(dados$metodo)) #número de grupos
+m = 3 #número de comparações
+qb = qt(1-(1/m)*0.05/2, df = n - I) #quantil
+se = sqrt(result$`Mean Sq`[2])
+```
+
+
+Como todos os grupos possuem o mesmo tamanho ($n=8$), o erro padrão para o estimador da diferença entre médias será:
+
+```{r}
+ep = se*sqrt(1/8 + 1/8)
+```
+
+Finalmente, vamos determinar os IC's
+
+
+```{r}
+cat(
+  "IC(mu1 - mu2; 95%) =",
+  grupos$xbar[1] - grupos$xbar[2] + c(-1,1)*qb*ep,
+  "\nIC(mu1 - mu3; 95%) =",
+  grupos$xbar[1] - grupos$xbar[3] + c(-1,1)*qb*ep,
+  "\nIC(mu2 - mu3; 95%) =",
+  grupos$xbar[2] - grupos$xbar[3] + c(-1,1)*qb*ep
+)
+```
+
+Portanto, concluímos que $\mu_1 = \mu_2 < \mu_3$.
+
+
+## Problema 14:
+
+Entrada dos dados:
+
+
+```{r}
+dados = data.frame(
+  vendas = c(
+    15, 20, 9, 12, 21, 23, 19, 25, 9, 13, 20, 18
+  ),
+  embalagem = factor(c(rep("A", 4), rep("B", 4), rep("C", 4)))
+)
+```
+
+Teste:
+
+
+```{r}
+result = anova(aov(vendas ~ embalagem, dados))
+result
+
+rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
+cat(
+  "Coeficiente R2 do modelo:",
+  rsq
+  )
+```
+
+Como vemos, o modelo explica cerca de 49% da variância dos dados. O resultado está no limiar da significância de 5%. Assim, rejeitamos a hipótese de igualdade das 3 médias.
+
+Vamos agora construir os intervalos de confiança 2 a 2 para a diferença de médias. Novamente, temos 3 grupos, de modo que existêm 3 comparações possíveis. Vamos iniciar calculando as médias dentro de cada grupo:
+
+
+```{r}
+grupos = dados %>%
+  group_by(embalagem) %>%
+  summarise(n = n(), xbar = mean(vendas))
+grupos
+```
+
+Agora, vamos calcular as grandezas necessárias para a construção dos IC's:
+
+
+```{r}
+n = nrow(dados) #quantidade total de elementos
+m = 3 #Número de comparações
+I = length(levels(dados$embalagem))
+qb = qt(1-(1/m)*0.05/2, df = n - I) #quantil
+se = sqrt(result$`Mean Sq`[2])
+```
+
+
+Como todos os grupos possuem o mesmo tamanho ($n=4$), o erro padrão para o estimador da diferença entre médias será sempre igual a:
+
+```{r}
+ep = se*sqrt(1/4 + 1/4)
+```
+
+Finalmente, vamos determinar os IC's:
+
+
+```{r}
+cat(
+  "IC(muA - muB; 95%) =",
+  grupos$xbar[1] - grupos$xbar[2] + c(-1,1)*qb*ep,
+  "\nIC(muA - muC; 95%) =",
+  grupos$xbar[1] - grupos$xbar[3] + c(-1,1)*qb*ep,
+  "\nIC(muB - muC; 95%) =",
+  grupos$xbar[2] - grupos$xbar[3] + c(-1,1)*qb*ep
+)
+```
+
+
+Como vemos nos resultados acima, não é possível rejeitar as hipóteses de igualdade das médias 2 a 2 no nível de confianã de 5%. Parte disso resulta do fato de que o p-valor do teste ANOVA feito ficou no limiar dos 5%. Assim, no nível de 5%, o teste é inconclusivo.
+
+
+## Problema 15
+
+Primento, vamos obter os dados do problema a partir de uma planilha de excel:
+
+
+```{r}
+dados = read_excel("problema15.15.xlsx")
+dados = mutate(dados, receita = as.factor(receita))
+```
+
+
+Aqui, podemos testar se as médias das notas atribuídas para as diferentes receitas são iguais entre si. Vamos obter a tabela ANOVA:
+
+
+```{r}
+result = anova(aov(nota ~ receita, dados))
+result
+
+rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
+cat(
+  "Coeficiente R2 do modelo:",
+  rsq
+  )
+```
+
+Conforme as grandezas calculadas acima, vemos que o modelo explica apenas cerca de 11% da variância dos dados. Ainda, o resultado não se mostra significativo, já que p > 0.05. Logo, concluímos que não podemos rejeitar a hipótese de igualdade das médias dos grupos, indicando que nos 4 tipos de preparo analisados, o produto é igualmente aceito, em média.
+
+
+## Problema 16
+
+Nesse caso, teremos que fazer o teste "manualmente", já que não temos os dados brutos, e sim as médias e variâncias dentro de cada grupo. Vamos fazer a entrada dos elementos fornecidos:
+
+
+```{r}
+xbar_H = 28.75
+nH = 65
+sH = 3.54
+
+xbar_E = 35.21
+nE = 12
+sE = 5.46
+
+xbar_B = 43.90
+nB = 8
+sB = 4.93
+```
+
+Agora, vamos calcular as grandezas necessárias para o teste: média global, soma dos quadrados dentro, entre e total:
+
+
+```{r}
+#Média global
+xbar = (nH*xbar_H + nE*xbar_E + nB*xbar_B)/(nH + nE + nB)
+
+SQDen = (nH - 1)*sH^2 + (nE - 1)*sE^2 + (nB - 1)*sB^2
+SQEnt = nH*(xbar_H - xbar)^2 + nE*(xbar_E - xbar)^2 + 
+  nB*(xbar_B - xbar)^2
+SQTot = SQDen + SQEnt
+```
+
+
+Por fim, lembrando que temos $n-1$ graus de liberdade associados à soma de quadrados totais, $n-I$ g.l associados à soma dos quadrados dentro dos grupos (resíduos) e $I-1$ g.l associados à soma dos quadrados entre grupos. Assim, podemos calcular a estatística do teste, o p-valor e o coeficiente $R^2$:
+
+
+```{r}
+QMDen = SQDen/(nH + nE + nB - I)
+QMEnt = SQEnt/(I - 1)
+
+F_ = QMEnt/QMDen
+p = pf(F_, I-1, nH + nE + nB - I, lower.tail = F)
+rsq = SQEnt/SQTot
+
+cat(
+  " Rsq",
+  "\t\t",
+  " F",
+  "\t\t",
+  " p\n",
+  rsq,
+  F_,
+  p
+)
+```
+
+Como podemos ver, o modelo é responsável por cerca de 59% da variância dos dados. Ainda, o resultado se mostra significativo, já que o p-valor calculado resultou ser essencialmente igual a zero. Assim, rejeitamos a hipótese nula de que os salários médios nas 3 áreas indicadas são iguais, o que nos leva a concluir que pelo menos um dos salários médios é diferente dos demais.
+
+
+Como rejeitamos a hipótese de igualdade das médias dos grupos, podemos determinar intervalos de confiança 2 a 2 para a diferença de médias. Como temos 3 grupos, teremos 3 comparações. 
+
+Vamos primeiro calcular o erro padrão para a diferença entre médias e o quantil para o IC de 95%, considerando a correção de Bonferroni. Devemos nos atentar ao fato de que os erros padrões não são iguais, como nos casos anteriores, já que os tamanhos dos grupos não são os mesmos:
+
+
+```{r}
+#Desvio padrão dos resíduos
+se = sqrt(QMDen)
+#Erros padrões para as diferenças entre médias
+ep_HE = se*sqrt(1/nH + 1/nE)
+ep_HB = se*sqrt(1/nH + 1/nB)
+ep_EB = se*sqrt(1/nE + 1/nB)
+
+#Quantil que define o IC(95%)
+qb = qt(1-(1/3)*0.05/2, nH + nE + nB - I)
+```
+
+
+```{r}
+cat(
+  "IC(muH - muE; 95%) =",
+  xbar_H - xbar_E + c(-1,1)*qb*ep_HE,
+  "\nIC(muH - muB; 95%) =",
+  xbar_H - xbar_B + c(-1,1)*qb*ep_HB,
+  "\nIC(muE - muB; 95%) =",
+  xbar_E - xbar_B + c(-1,1)*qb*ep_EB
+)
+```
+
+
+Assim, como nenhum dos IC's calculado contêm o zero, concluímos que as 3 médias salariais são diferentes entre si. Ainda, podemos concluir que
+
+$$\mu_H < \mu_E < \mu_B.$$
+
+
+## Problema 17
+
+Primeiro, os dados do problema, que estão em uma planilha de excel:
+
+
+```{r}
+dados = read_excel("problema15.17.xlsx")
+dados = mutate(dados, livro = as.factor(livro))
+```
+
+Agora, vamos fazer o teste ANOVA, a fim de verificar se há evidências de que o número médio de vezes que a construção silábica apareceu em cada livro é a mesma:
+
+
+```{r}
+result = anova(aov(numero_vezes ~ livro, dados))
+result
+
+rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
+cat(
+  "Coeficiente R2 do modelo:",
+  rsq
+)
+```
+
+Vemos então que o modelo é responsável por cerca de 47% da variância dos dados. Além disso, esse resultado é significativo, já que o p-valor do teste resultou ser menor que 1%.
+
+Como rejeitamos a hipótese de igualdade das 4 médias, podemos agora analisar a igualdade duas a duas. Para isso, vamos primeiro calcular e enumerar as comparações possíveis:
+
+
+```{r}
+config = combn(1:4, 2) #comparações possíveis
+config
+m = ncol(config) #número de comparações possíveis
+```
+
+Ou seja, podemos fazer 6 comparações. Vamos primeiro calcular a média de cada grupo:
+
+
+```{r}
+grupos = dados %>%
+  group_by(livro) %>%
+  summarise(n = n(), xbar = mean(numero_vezes))
+grupos
+```
+
+Agora, vamos calcular o desvio padrão dos resíduos e o erro padrão para cada comparação:
+
+
+```{r}
+n1 = grupos$n[1]
+n2 = grupos$n[2]
+n3 = grupos$n[3]
+n4 = grupos$n[4]
+I = length(levels(dados$livro)) #número de grupos
+#Devio padrão dos resíduos
+se = sqrt(result$`Mean Sq`[2])
+#Erro padrão para as diferenças entre médias
+ep12 = se*sqrt(1/n1 + 1/n2)
+ep13 = se*sqrt(1/n1 + 1/n3)
+ep14 = se*sqrt(1/n1 + 1/n4)
+ep23 = se*sqrt(1/n2 + 1/n3)
+ep24 = se*sqrt(1/n2 + 1/n4)
+ep34 = se*sqrt(1/n3 + 1/n4)
+
+#Quantil corrigido para o IC(95%)
+qb = qt(1-(1/m)*0.05/2, df = nrow(dados) - I)
+```
+
+Finalmente, vamos determinar os IC's dois a dois:
+
+
+```{r}
+cat(
+  "IC(mu_1 - mu_2; 95%) =",
+  grupos$xbar[1] - grupos$xbar[2] + c(-1,1)*qb*ep12,
+  "\nIC(mu_1 - mu_3; 95%) =",
+  grupos$xbar[1] - grupos$xbar[3] + c(-1,1)*qb*ep13,
+  "\nIC(mu_1 - mu_4; 95%) =",
+  grupos$xbar[1] - grupos$xbar[4] + c(-1,1)*qb*ep14,
+  "\nIC(mu_2 - mu_3; 95%) =",
+  grupos$xbar[2] - grupos$xbar[3] + c(-1,1)*qb*ep23,
+  "\nIC(mu_2 - mu_4; 95%) =",
+  grupos$xbar[2] - grupos$xbar[4] + c(-1,1)*qb*ep24,
+  "\nIC(mu_3 - mu_4; 95%) =",
+  grupos$xbar[3] - grupos$xbar[4] + c(-1,1)*qb*ep34
+)
+```
+
+
+Assim, concluímos que:
+
+
+$$\mu_1 = \mu_2 = \mu_3 < \mu_4$$
+
+
+## Problema 19
+
+
+### Exemplo 15.2
+
+Primeiro, vamos fazer a leitura dos dados do exemplo 15.2:
+
+```{r}
+manha = c(4.2, 4.0, 3.1, 2.7, 2.3, 3.3, 4.1)
+tarde = c(2.7, 2.4, 2.4, 2.2, 1.9, 1.8)
+noite = c(4.6, 3.9, 3.8, 3.7, 3.6, 3.5, 3.4, 2.8)
+
+dados = data.frame(
+  desempenho = c(manha, tarde, noite), 
+  turno = c(
+    rep("M", length(manha)),
+    rep("T", length(tarde)),
+    rep("N", length(noite))
+    )
+)
+
+dados = mutate(dados, turno = as.factor(turno))
+```
+
+Já analisamos esse caso no problema 5. Porém, naquela situação, consideramos apenas 2 níveis para o fator turno - diurno e noturno. Desse modo, os turnos manhã e tarde foram fundidos em um único grupo. Aqui, contudo, vamos considerar os 3 grupos em separado.
+
+Agora, vamos fazer o teste estatístico:
+
+```{r}
+result = anova(aov(desempenho ~ turno, dados))
+result
+
+rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
+
+cat(
+  "Coeficiente R2 do modelo:",
+  rsq
+  )
+```
+
+
+Aqui, com o desmembramento do grupo diurno nos níveis manhã e tarde, o modelo torna-se melhor, com um coeficiente $R^2$ de 57%, contra 25% da situação anterior. Em outras palavras, aumentam as evidências a favor da hipótese alternativa de que as os desempenhos médios são diferentes para os estudantes dos diferentes turnos.
+
+
+Por fim, podemos comparar as médias dos grupos 2 a 2. Como temos 3 grupos, serão 3 comparações. Vamos primeiro calcular as médias de cada grupo:
+
+
+```{r}
+grupos = dados %>%
+  group_by(turno) %>%
+  summarise(n = n(), xbar = mean(desempenho))
+
+grupos
+```
+
+Agora, vamos calcular o desvio padrão dos resíduos, $S_e^2$, bem como o erro padrão para cada comparação. Devemos notar também que o tamanho dos grupos são diferentes, conforme mostrado acima.
+
+
+```{r}
+#Tamanhos dos grupos
+n1 = grupos$n[1] #Tamanho do grupo matinal
+n2 = grupos$n[2] #Tamanho do grupo noturno
+n3 = grupos$n[3] #Tamanho do grupo da tarde
+n = nrow(dados)
+I = length(levels(dados$turno))
+m = 3 #Número de comparações
+
+#Desvio padrão dos resíduos
+se = sqrt(result$`Mean Sq`[2])
+
+#Erro padrão para as comparações entre médias:
+ep12 = se*sqrt(1/n1 + 1/n2)
+ep13 = se*sqrt(1/n1 + 1/n3)
+ep23 = se*sqrt(1/n2 + 1/n3)
+
+#Quantil para o IC(95%), corrigido pelo fator de Bolfarrini:
+qb = qt(1-(1/m)*0.05/2, df = n - I)
+```
+
+E agora, os IC's
+
+```{r}
+cat(
+  "IC(mu_M - mu_T; 95%) =",
+  grupos$xbar[1] - grupos$xbar[3] + c(-1,1)*qb*ep13,
+  "\nIC(mu_M - mu_N; 95%) =",
+  grupos$xbar[1] - grupos$xbar[2] + c(-1,1)*qb*ep12,
+  "\nIC(mu_T - mu_N; 95%) =",
+  grupos$xbar[3] - grupos$xbar[2] + c(-1,1)*qb*ep23
+)
+```
+
+Portanto, concluímos que:
+
+$$ \mu_M = \mu_N > \mu_T $$
+
+### Exemplo 15.3
+
+Primeiro, vamos fazer a entrada dos dados:
+
+```{r}
+dados = read_excel("exemplo-15.3.xlsx")
+
+dados = mutate(dados, regime = as.factor(regime))
+```
+
+Aqui, queremos verificar se o tipo de regime tem influência sobre a perda de peso resultante. Já fizemos isso no problema 7, mas naquele caso consideramos apenas os níveis 1 e 2 para o fator regime. Agora, vamos considerar os 3 níveis existentes.
+
+Vamos fazer o teste propriamente dito:
+
+```{r}
+result = anova(aov(peso_perdido ~ regime, dados))
+result
+
+rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
+
+cat(
+  "Coeficiente R2 do modelo:",
+  rsq
+  )
+```
+
+
+Vemos, portanto, que a variação devido aos diferentes grupos (regimes 1, 2 ou 3) respondem por cerca de 67% da variação total nos dados. Além disso, o resultado é significativo, já que o valor de p é menor que a significância do teste. Assim, concluímos que o tipo de regime adotado influenciou na perda de peso, e rejeitamos a hipótese de igualdade das médias dos 3 grupos analisados.
+
+Nesse caso, notamos também que o coeficiente $R^2$ do modelo é menor quando inserimos o terceiro grupo (nível 3 do fator regime) na análise de variância. Isso ocorre porque o nível 3 é o que guarda maior variabilidade, comparativamente aos outros dois grupos. Podemos ver isso com um boxplot:
+
+
+```{r}
+dados %>%
+  ggplot(aes(x = regime, y = peso_perdido)) + 
+  geom_boxplot() + 
+  labs(
+    x = "regime",
+    y = "Peso perdido",
+    title = "Perda de peso em função do tipo de regime adotado"
+  ) + 
+  theme(text = element_text(size = 16))
+```
+
+
+Por fim, podemos comparar as médias dos grupos 2 a 2. Como temos 3 grupos, serão 3 comparações. Vamos primeiro calcular as médias de cada grupo:
+
+
+```{r}
+grupos = dados %>%
+  group_by(regime) %>%
+  summarise(n = n(), xbar = mean(peso_perdido))
+
+grupos
+```
+
+Agora, vamos calcular o desvio padrão dos resíduos, $S_e^2$, bem como o erro padrão para cada comparação. Como os tamanhos dos grupos são todos iguais, o erro padrão para comparação entre médias será sempre o mesmo.
+
+```{r}
+#Tamanhos dos grupos
+n = nrow(dados)
+I = length(levels(dados$regime))
+m = 3 #Número de comparações
+
+#Desvio padrão dos resíduos
+se = sqrt(result$`Mean Sq`[2])
+
+#Erro padrão para as comparações entre médias:
+ep = se*sqrt(1/6 + 1/6)
+
+#Quantil para o IC(95%), corrigido pelo fator de Bolfarrini:
+qb = qt(1-(1/m)*0.05/2, df = n - I)
+```
+
+E agora, os IC's
+
+```{r}
+cat(
+  "IC(mu_1 - mu_2; 95%) =",
+  grupos$xbar[1] - grupos$xbar[2] + c(-1,1)*qb*ep,
+  "\nIC(mu_1 - mu_3; 95%) =",
+  grupos$xbar[1] - grupos$xbar[3] + c(-1,1)*qb*ep,
+  "\nIC(mu_2 - mu_3; 95%) =",
+  grupos$xbar[2] - grupos$xbar[3] + c(-1,1)*qb*ep
+)
+```
+
+Assim, concluímos que:
+
+$$ \mu_1 = \mu_3 > \mu_2 $$
+
+## Problema 20
+
+Já feito no problema anterior. Como vimos, rejeitamos a hipótese $H_0: \mu_1 = \mu_2 = \mu_3$ no nível de confiança de 5%.
+
+
+## Problema 21
+
+Como já estamos com os dados do exemplo 15.3 carregados, precisamos apenas chamá-los e fazer o teste.
+
+Inicialmente, vamos calcular os tamanhos e os desvios padrões de cada grupo:
+
+```{r}
+se = sqrt(result$`Mean Sq`[2])
+I = length(levels(dados$regime))
+n = nrow(dados)
+grupos = dados %>%
+  group_by(regime) %>%
+  summarise(n = n(), s = sd(peso_perdido))
+grupos
+```
+
+Agora, vamos calcular os valores de $M$ e de $C$:
+
+
+```{r}
+M = (n - I)*log(se^2, base = exp(1)) - sum((grupos$n - 1)*log(grupos$s^2, base = exp(1)))
+
+C = 1 + (1/(3*(I - 1)))*( sum(1/(grupos$n - 1)) - (1/(n-1)) )
+
+xsi = M/C
+```
+
+E agora, vamos fazer o teste, por meio da distribuição $\chi^2$, lembrando que a hipótese nula é
+
+$$ H_0: \sigma_1^2 = \sigma_2^2 = \sigma_3^2 $$
+e o teste é unilateral à direita:
+
+```{r}
+p = pchisq(xsi, df = I - 1, lower.tail = F)
+
+p
+```
+
+Logo, como p > 0.05, não podemos rejeitar a hipótese de homocedasticidade, ou seja, de que as variâncias dos grupos são iguais.
+
+
+## Problema 22: 
+
+(a) O problema é um pouco vago quando pede o intervalo que contêm 95% dos valores da variável aleatória em análise. Isso porque ele não fala em que porção da distribuição deve estar esses 95%. Contudo, vamos supor que estamos falando dos 95% que ficam no centro da curva, como em um intervalo de confiança. 
+
+Podemos fazer isso de duas formas. Uma delas é por meio da normal padrão:
+
+```{r}
+mu = 100
+sigma = 20
+cat(
+  "intervalo com 95% das vendas =",
+  mu + c(-1, 1)*qnorm(0.975)*sigma
+)
+```
+
+A outra maneira é calcular os dois quantis diretamente, sem usar a normal padrão:
+
+```{r}
+c(qnorm(0.025, mu, sigma), qnorm(0.975, mu, sigma))
+```
+Como vemos, os quantis que acumulam 95% de probabilidade na parte central da distribuição estão afastados cerca de dois desvios padrões da média.
+
+(b)
+
+Nesse caso, estamos falando de um intervalo de confiança para a média $\bar{X}$. A forma do cálculo é a mesma. A média da média amostral é igual a média populacional, já conhecida. A diferença está no desvio padrão, que agora é igual a $\sigma/\sqrt{n}$, sendo $n$ o tamanho da amostra:
+
+```{r}
+# Média amostral
+xbar = 100
+# Erro padrão da média amostral
+ep = sigma/sqrt(9)
+cat(
+  "IC(xbar, 95%) =",
+  xbar + c(-1, 1)*qnorm(0.975)*ep
+)
+```
+
+(c)
+
+Comparando os dois intervalos: o primeiro deles contêm 95% das ocorrências de uma v.a normalmente distribuída. Já o segundo representa um intervalo de confiança de 95% para a média amostral de uma amostra retirada da população normal referida no item anterior. Ou seja, se retiramos uma amostra de tamanho $n = 9$ de uma população com média $\mu = 100$ e variância $\sigma = 20$, esperamos que o intervalo de confiança de 95% tenha a forma mostrada logo acima.
+
+(d) De posse de uma amostra de tamanho $n$, melhor estimativa para a média populacional é a média amostral $\bar{X}$, já que é um estimador não viesado da média.
+
+```{r}
+x = c(157, 162, 135, 136, 154, 178, 180, 127, 128)
+xbar = mean(x)
+xbar
+```
+
+(e) De posse de uma amostra de tamanho $n$, a melhor estimativa para o desvio padrão populacional é o desvio padrão amostral $S$, dado por
+
+$$ S^2 = \dfrac{1}{n - 1} \Sigma_i (x_i - \bar{x})^2. $$
+
+```{r}
+s = sd(x)
+s
+```
+
+(f) A diferença entre esse caso e o IC calculado logo acima para a média é que agora temos uma amostra e não conhecemos os parâmetros populacionais. Assim, usamos nossas melhores estimativas para média e desvio padrão populacionais.
+
+```{r}
+# Média amostral
+xbar = mean(x)
+s = sd(x)
+n = length(x)
+# Erro padrão da média amostral
+ep = s/sqrt(n)
+cat(
+  "IC(xbar, 95%) =",
+  xbar + c(-1, 1)*qnorm(0.975)*ep
+)
+```
+
+(g) Como estamos tratando de uma amostra retirada de uma população normal, podemos construir um IC para a variância populacional $\sigma$ a partir da distribuição qui-quadrado, já que:
+
+$$ \dfrac{(n-1)S^2}{\sigma^2} \sim \chi^2(n - 1). $$
+
+O intervalo de confiança procurado é obtido a partir da expressão 
+
+$$ P\left( \chi_1^2 \leq \dfrac{(n-1)S^2}{\sigma^2} \leq \chi_2^2 \right), $$
+
+a qual está disponível na página 367 do livro. A partir disso, temos a forma do IC procurado:
+
+$$ IC(\sigma; 95\%) = \left[ \dfrac{(n-1)S^2}{\chi_2^2}, \dfrac{(n-1)S^2}{\chi_1^2} \right], $$
+em que $\chi_1$ é o quantil que acumula 2,5% de probabilidade, e $\chi_2$ é o quantil que acumula 97,5% de probabilidade na distribuição qui-quadrado com $n-1$ graus de liberdade, com $n$ sendo o tamanho da amostra. Dessa forma, temos:
+
+```{r}
+cat(
+  "IC(sigma^2; 95%) =",
+  c(
+    sqrt((n-1)*s^2/qchisq(0.975, df = n-1)),
+    sqrt((n-1)*s^2/qchisq(0.025, df = n-1))
+    )
+)
+```
+
+(h) Ambos os intervalos são de 95% de probabilidade, o que significa que, em cada caso, se repetíssemos o procedimento amostral um número muito grande de vezes, com o mesmo tamanho de amostra, e calculássemos os respectivos intervalos de confiança, cerca de 95% dos intervalos construídos conteriam o verdadeiro valor do parâmetro.
+
+(i) A resposta nesse caso é igual àquela do item (f), ou seja, o intervalo de confiança de 95% para a média populacional:
+
+```{r}
+# Média amostral
+xbar = mean(x)
+s = sd(x)
+n = length(x)
+# Erro padrão da média amostral
+ep = s/sqrt(n)
+cat(
+  "IC(xbar, 95%) =",
+  xbar + c(-1, 1)*qnorm(0.975)*ep
+)
+```
+
+Uma restrição que se faz é referente ao tamanho da amostra, que deve ser grande para a validade do TLC. Outra restrição que pode ser feita é quanto à natureza do intervalo obtido. No item (a), aquele intervalo era exato, já que conhecíamos a distribuição do número de vendas na população. Aqui, o que temos é um intervalo de confiança para a média amostral. Porém, como a população também tem distribuição normal, assim como a média amostral, o intervalo aqui obtido também reflete, de algum modo, a distribuição do númnero de vendas diárias. Contudo, diferentemente daquele obtido no item (a), um intervalo como esse conterá a verdadeira média populacional em 95% das vezes, ao passo que aquele calculado no item (a) sempre conterá a média real.
+
+(j) O intervalo de predição pedido será então dado por
+
+
+```{r}
+cat("IP(X; 95%) =",
+    xbar + c(-1,1)*qt(0.975, df = n-1)*s*sqrt(1+1/n)
+    )
+```
+
+(k) Na resposta ao item (h), tratamos de intervalos de confiança, que nos dão um intervalo no qual o verdadeiro valor de um parâmetro estimado provavelmente estará contido se repetirmos o experimento um número muito grande de vezes para o mesmo tamanho de amostra. 
+
+Analogamente, o intervalo de predição nos dá um intervalo no qual o verdadeiro valor de uma variável estimada por meio do modelo dado provavelmente estará contida se repetirmos o experimento um número muito grande de vezes com o mesmo tamanho de amostra.
+
+Em ambos os casos, no nosso exemplo, essa probabilidade (ou nível de confiança) é igual a 95%.
+
+
+## Problema 23
+
+Primeiro, vamos carregar novamente os dados do exemplo 15.1:
+
+```{r}
+dados = read_excel("exemplo-15.1.xlsx")
+```
+
+Vamos ver qual variável está armazenando a idade:
+
+
+```{r}
+head(dados)
+```
+
+Agora, vamos transformá-la num fator:
+
+
+```{r}
+dados = dados %>%
+  mutate(
+    X = as.factor(X)
+  )
+head(dados)
+```
+
+Aqui, a variável de interesse é o tempo de resposta a um estímulo visual, Y. Agora, vamos calcular o intervalo de predição pedido:
+
+
+```{r}
+y = dados %>%
+  filter(X == "40") %>%
+  select(Y)
+
+ybar = mean(y$Y)
+n = nrow(y)
+se = sd(y$Y)
+q = qt(0.975, n-1)
+
+cat(
+  "IP(Y, 95%) =",
+  ybar + c(-1,1)*q*se*sqrt(1+1/n)
+)
+```
+O intervalo de confiança para a média populacional do grupo com 40 anos é dado por:
+
+
+```{r}
+cat(
+  "IC(mu, 95%) =",
+  ybar + c(-1,1)*q*se/sqrt(n)
+)
+```
+
+Como vemos, a amplitude do intervalo de confiança de 95% é menos que a amplitude do intervalo de predição de 95%.
+
+
+## Problema 24
+
+Nesse caso, dizermos que as crianças estudadas têm peso normal é o mesmo que dizer que o peso delas seguem o modelo:
+
+$$ Y_f = \mu + E_f, $$
+
+de modo que
+
+$$ \hat{Y_f} = \bar{y}. $$
+
+Com os valores dados de $\Sigma_i x_i$ e $\Sigma_i x_i^2$, temos:
+
+
+```{r}
+ybar = 1639.5/50
+s = sqrt(56950.33/50 - ybar^2)
+
+cat("IP(Y_f; 95%) =",
+    ybar + c(-1,1)*qt(0.975, 50-1)*s*sqrt(1 + 1/50)
+    )
+```
+

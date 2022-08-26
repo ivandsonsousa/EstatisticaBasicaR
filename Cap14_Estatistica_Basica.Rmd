@@ -1,0 +1,1414 @@
+---
+title: 'Estatística Básica: capítulo 14'
+author: "Ivandson Praeiro de Sousa"
+date: '2022-07-03'
+output:
+  html_document:
+    number_sections: no
+    toc: yes
+    toc_float: yes
+    theme: cerulean
+    # highlight: spacelab
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introdução
+
+Neste capítulo[^bussab_morettin], estudamos 4 testes:
+
+- Teste de aderência
+- Teste de homogeneidade
+- Teste de independência
+- Teste para o coeficiente de correlação
+
+Todos esses testes são baseados na distribuição qui-quadrado. Basicamente, eles usam o qui-quadrado de Pearson como estatística do teste. Podemos usar essa estatística para testar se a distribuição observada é igual à esperada (teste de aderência), ou mesmo para avaliar a igualdade de duas distribuições (teste de homogeneidade). Além disso, também podemos usá-lo para testar a independência entre duas variáveis aleatórias. 
+
+Os 3 primeiros testes aqui descritos funcionam tanto para variáveis qualitativas como para as quantitativas. Porém, no caso de variáveis quantitativas, precisamos categorizá-las, a fim de adequá-las ao formato do teste, o qual se baseia na construção de tabelas de dupla entrada.
+
+No R, os 3 primeiros casos são implementados por meio da função `chisq.test()`, enquanto o último caso (teste para o coeficiente de correlação) é implementado por meio da função `cor.test()`.
+
+
+[^bussab_morettin]: MORETTIN, Pedro Alberto; BUSSAB, Wilton Oliveira. **Estatística básica**. Saraiva Educação SA, 2017.
+
+
+## Carregamento das bibliotecas necessárias
+
+
+```{r, warning=FALSE, message=FALSE}
+library(dplyr)
+library(ggplot2)
+library(readxl)
+library(kableExtra) #Para gerar tabelas com um layout agradável
+```
+
+
+# Teste de Aderência
+
+No caso do teste de aderência, como estamos interessados em verificar se os dados observados advêm de uma população especificada, usaremos a função `chisq.test()` do R para realizar o teste de hipóteses, com o primeiro argumento sendo a matriz de contingência 1Xs (vetor x), e o segundo argumento sendo um vetor p de probabilidades esperadas sob a hipótese nula.
+
+
+Ao final do capítulo, também vimos o teste de Kolmogorov-Smirnov, que é também uma forma de teste de aderência. Ele se baseia na distância entre a função distribuição acumulada empírica e a esperada de acordo com a hipótese nula. A estatística do teste é o valor máximo do módulo de D. No R, esse teste é implementado por meio da função `ks.test()`. O primeiro argumento que devemos informar (x) contêm os dados brutos (numéricos). Outro argumento (y), pode ser uma string, como "pnorm", identificando a FDA hipotetizada. Nesse caso, será testado se os dados advêm daquela distribuição. Outra possibilidade para essa função é indicar outro conjuto de dados no argumento y. Nesse caso, será testada a igualdade das duas distribuições.
+
+Abaixo vemos um exemplo de implementação do teste de Kolmogorov-Smirnov no R:
+
+
+```{r}
+# ks.test(
+#   x = dados,
+#   y = "pnorm",
+#   alternative = "two.sided",
+#   mean = 10,
+#   sd = 5)
+```
+
+## Exemplo 14.4
+
+Nesse caso, a hipótese nula é
+
+$$ H_0: p_1 = p_2 = \ldots = p_5 = 1/5 $$
+
+e a hipótese alternativa,
+
+$$ \exists \ j \in [1, 5] \mid p_j \neq 1/5. $$
+
+Agora, vamos fazer a entrada dos dados:
+
+```{r}
+x = c(32, 40, 20, 25, 33) #Dados para a tabela de contingência 1Xs
+```
+
+e finalmente, o teste qui-quadrado:
+
+```{r}
+chisq.test(x, p = rep(1/5, length(x))) #Teste qui-quadrado
+```
+
+
+Logo, no nível de significância de 5%, não podemos rejeitar a hipótese
+nula de que o número de acidentes se distribuam uniformemente ao longo
+dos dias da semana.
+
+
+## Exemplo 14.6
+
+Façamos primeiro a entrada dos dados:
+
+
+```{r}
+dados = c(1.04, 1.73, 3.93, 4.44, 6.37, 6.51, 
+          7.61, 7.64, 8.18, 8.48, 8.57, 8.65,
+          9.71, 9.87, 9.95, 10.01, 10.52, 10.69,
+          11.72, 12.17, 12.61, 12.98, 13.03, 13.16,
+          14.11, 14.60, 14.64, 14.75, 16.68, 22.14
+          )
+```
+
+As hipóteses nula e alternativa são, respectivamente,
+
+
+$$ H_0: P = N(10, 25) $$
+
+$$ H_1: P \neq N(10, 25) $$
+
+Para fazer um teste de aderência a partir da distribuição qui-quadrado com esses dados contínuos, precisamos antes categorizá-los. Faremos isso dividindo-os em 4 classes, definidas a partir dos quartis teóricos de uma N(10, 25). 
+
+Primeiro, vamos encontrar os quartis:
+
+```{r}
+q = qnorm(c(0.25, 0.50, 0.75), 10, 5)
+```
+
+Agora, vamos determinar as frequências dos dados observados dentro das categorias definidas pelos quartis da N(10, 25), para a criação da tabela de contingência 1Xs:
+
+
+```{r}
+x = dados %>%
+  cut(c(-Inf, q, Inf)) %>%
+  table() %>%
+  as.vector()
+```
+
+e por último, vamos fazer o teste de aderência:
+
+```{r}
+chisq.test(x, p = rep(0.25, length(x)))
+```
+
+Logo, como p > 0.05, não podemos rejeitar a hipótese nula e, portanto, concluímos que os dados acima foram retirados de uma distribuição normal N(10, 25).
+
+
+Para verificarmos graficamente este resultado, podemos plotar um box-plot e um qq-plot:
+
+
+```{r}
+dados = as.data.frame(dados)
+
+box_plot = ggplot(data = dados, aes(x = "", y = dados)) + 
+  geom_boxplot(fill = "orange", 
+               outlier.colour = "red",
+               outlier.size = 2.8,
+               alpha = 0.5,
+               width = 0.2,
+               size = 0.7
+               ) + 
+  stat_boxplot(geom = "errorbar",
+               width = 0.1,
+               size = 0.7
+               ) + 
+  labs(
+    title = "Boxplot para o dataset",
+    x = "",
+    y = "values"
+  ) + 
+  coord_flip() + 
+  theme(text = element_text(size = 16))
+
+qq_plot = ggplot(data = dados, aes(sample = dados)) + 
+  geom_qq(col = "red", size = 2.8) + 
+  geom_qq_line(linetype = "dashed", color = "blue", size = 1.8) + 
+  labs(
+    title = "qq-plot para o dataset",
+    x = "quantis teóricos",
+    y = "quantis amostrais"
+  ) + 
+  theme(text = element_text(size = 16))
+
+cowplot::plot_grid(box_plot, qq_plot)
+```
+
+## Problema 1
+
+No exemplo 14.1, queremos saber se o dado é honesto, dadas as frequências observadas para cada face. Nesse caso, queremos fazer um teste de aderência para verificar se os dados observados têm distribuição uniforme, com p = 1/6. Assim, as hipóteses nula e alternativa são, respectivamente:
+
+
+$$ H_0: p_1 = p_2 = \ldots = p_6 = 1/6 $$
+
+e 
+
+$$ H_1: \exists \ j \in [1, 6] \mid p_j \neq 1/6. $$
+
+
+Vamos entrar com os dados da tabela de contingência 1Xs:
+
+
+```{r}
+x = c(43, 49, 56, 45, 66, 41) #Tabela de contingência 1Xs
+```
+
+
+e por último, o teste qui-quadrado, que irá retornar o valor p procurado:
+
+
+```{r}
+chisq.test(x, p = rep(1/6, length(x))) #Teste qui-quadrado
+```
+
+
+Logo, como o p-valor resultou ser maior que 0.05, não podemos rejeitar a hipótese nula de que o dado é honesto.
+
+
+## Problema 3
+
+Primeiro, vamos carregar os dados para a tabela de contingência 1Xs. A partir dos dados do problema, vemos que as frequências observadas para as quatro categorias são:
+
+
+```{r}
+x = c(125, 18, 20, 34)
+```
+
+De acordo com o modelo genético postulado, o número de animais em cada categoria se distribui de acordo com as seguintes probabilidades:
+
+```{r}
+p = c(0.656, 0.093, 0.093, 0.158)
+```
+
+As hipóteses nula e alternativa são, respectivamente:
+
+$$H_0: p_1 = 0.656, p_2 = 0.093, p_3 = 0.093, p_4 = 0.158$$
+
+$$H_1: \exists j \in [1, 4] \ \mid p_j \not\subset \{0.656, 0.093, 0.093, 0.158\}. $$
+
+Agora, para realizar o teste de hipóteses, precisamos primeiro lembrar que o teste qui-quadrado é um teste unilateral à direita. Ou seja, valores altos da estatística, definidos a partir da significância do teste, são menos prováveis de ocorrer sob a hipótese nula. 
+
+Vamos testar a hipótese nula:
+
+```{r}
+chisq.test(x, p = c(0.656, 0.093, 0.093, 0.158))
+```
+
+
+Portanto, no nível de significância de 5%, não podemos rejeitar a hipótese nula de que a distribuição do número de animais em cada categoria seja a que foi dada. Ou seja, não há evidências de que os dados não estejam de acordo com o modelo genético postulado.
+
+
+## Problema 4
+
+Primeiro, vamos fazer a entrada dos dados brutos:
+
+```{r}
+dados = c(15.9, 16.9, 18.3, 18.5, 19.0,
+          19.5, 21.8, 23.0, 23.8, 24.5,
+          26.1, 26.9, 32.3, 35.0, 36.1,
+          36.5, 37.2, 38.5, 40.9, 44.2
+          )
+```
+
+
+Aqui, a hipótese nula é que os dados advêm de uma população $N(30, 100)$.
+
+Para fazer um teste de aderência a partir da distribuição qui-quadrado com esses dados contínuos, precisamos antes categorizá-los. Faremos isso dividindo-os em 4 classes, definidas a partir dos quartis teóricos de uma $N(30, 100$, conforme já fizemos no início deste relatório:
+
+
+```{r}
+q = qnorm(c(0.25, 0.50, 0.75), 30, 10)
+```
+
+Agora, vamos construir a distribuição de frequências dos dados observados dentro das categorias definidas pelos quartis da N(30, 100):
+
+
+```{r}
+x = dados %>%
+  cut(c(-Inf, q, Inf)) %>%
+  table() %>%
+  as.vector()
+```
+
+Vamos agora realizar o teste estatístico propriamente dito:
+
+
+```{r}
+chisq.test(x, p = rep(0.25, length(x)))
+```
+
+Logo, como $p > 0.05$, não podemos rejeitar a hipótese nula de que os dados apresentados foram retirados de uma normal $N(30, 100)$.
+
+
+## Problema 5
+
+Neste caso, para testar a hipótese nula de que o dado é balanceado (honesto), podemos fazer um teste de aderência, ao verificar se as frequências observadas se encaixam em uma distribuição uniforme com $P(X) = 1/6$ sendo a probabilidade de ocorrência de qualquer uma das 6 faces. Ou seja,
+
+
+$$ H_0: p_1 = p_2 = \ldots = p_6 = 1/6 $$
+
+$$ H_1: \  \exists j \subset [1, 6] \mid p_j \neq 1/6$$
+
+
+Agora, vamos carregar os dados de frequências observada, na forma de uma tabela de contingência 1xs:
+
+
+```{r}
+x = c(158, 186, 179, 161, 141, 175)
+```
+
+Por último, fazemos o teste de aderência:
+
+
+```{r}
+chisq.test(x, p = rep(1/6, length(x)))
+```
+
+
+Concluímos portanto que, no nível de significância de 5%, não podemos rejeitar a hipótese nula de que o dado é honesto.
+
+
+# Teste de homogeneidade
+
+
+No teste de homogeneidade, em geral estamos interessados em saber se dois conjuntos de dados foram retirados da mesma população, a partir da igualdade de suas distribuições, ou se duas populações se distribuem igualmente ao longo de determinadas categorias. No primeiro caso, fornecemos os dois conjuntos de dados ao R, por meio da função `chisq.test()`. No segundo, fornecemos a própria matriz de contingência rXs, em que r é o número de variáveis (populações) e s é o número de categorias. 
+
+Na prática, esse teste é realizado de maneira muito semelhante ao teste de aderência no R. A única diferença é que, no atual caso, não fornecemos um vetor de probabilidades, mas sim dois conjuntos de dados a serem comparados.
+
+
+## Exemplo 14.2: continuação (página 421)
+
+Aqui, como temos apenas as frequências observadas na forma de uma tabela de contingência rXs, podemos usar a função `chisq.test()`, usando como argumento uma matriz contendo os dados da tabela de contingência, para obter a estatística do teste e o p-valor:
+
+Temos que fornecer os dados no formato de uma tabela de dupla entrada. Para isso, primeiro admitimos as frequências observados como uma matriz. Em seguida, admitimos as categorias como os nomes das linhas e colunas. 
+
+
+```{r}
+tab = matrix(
+  c(15, 8, 20, 23, 30, 18, 20, 34, 15, 17),
+  byrow = F, 
+  nrow = 2,
+  dimnames = list(c("humanas", "biologicas"), c(LETTERS[1:5]))
+)
+```
+
+
+Vamos visualizar a tabela de contingência com a ajuda da library `KableExtra`:
+
+```{r}
+kable(tab) %>%
+  kable_styling(
+    full_width = F,
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+
+Por último, o teste qui-quadrado, para avaliar a homogeneidade das distribuições:
+
+
+$$ H_0: P_1 = P_2 $$
+
+$$ H_1: P_1 \neq P_2 $$
+
+```{r}
+chisq.test(tab)
+```
+
+
+Portanto, como o valor p calculado é maior que o nível de significância do teste (alpha = 0.05), não podemos rejeitar a hipótese nula de igualdade das duas distribuições. Portanto, a distribuição das notas é provavelmente a mesma para as duas populações.
+
+
+## Problema 6
+
+Como os dados já estão categorizados, precisamos apenas escrevê-los no formato de tabela do R:
+
+
+```{r}
+tab = matrix(
+  c(15, 6, 22, 10, 18, 20, 3, 6),
+  byrow = F,
+  nrow = 2,
+  dimnames = list(
+    c("publica", "particular"), 
+    c("(0; 2,5]", "(2,5; 5]", "(5; 7,5]", "(7,5; 10]")
+    )
+)
+```
+
+
+Vamos visualizar a tabela de contingência com a ajuda da library `KableExtra`:
+
+```{r}
+kable(tab) %>%
+  kable_styling(
+    full_width = F,
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+
+Por último, o teste qui-quadrado, para avaliar a homogeneidade das distribuições:
+
+$$H_0: P_1 = P_2$$
+
+$$H_1: P_1 \neq P_2$$
+
+
+```{r}
+chisq.test(tab)
+```
+
+
+Portanto, no nível de significância de 0.01, não podemos rejeitar a hipótese nula de que as duas distribuições são homogêneas.
+
+
+Vamos fazer também o cálculo "manualmente", ou seja, sem o uso da função `chisq.test()`, apenas para verificar a conformidade.
+
+Primeiro, vamos adimitir os dados na forma de um dataframe, a fim de facilitar os cálculos:
+
+```{r}
+dados = data.frame(
+  pub_obs = c(15, 22, 18, 3),
+  part_obs = c(6, 10, 20, 6)
+)
+```
+
+Aqui, as categorias estão nas linhas. Assim, vamos nomeá-las. Além disso, vamos também calcular as frequências absolutas esperadas para ambas as populações (pública e particular), dentro das categorias de notas. Para isso, vamos lembrar de que, quando as populações estão igualmente distribuídas ao longo das categorias, as distribuições individuais são iguais à distribuição dos totais, ou seja: 
+
+
+$$ n_{ij} = \dfrac{n_i \cdot n_j}{n}, $$
+
+$$ i = 1, \ldots, r; \ j = 1, \ldots, s. $$
+
+Em outras palavras, a frequência esperada para cada célula da tabela de contingência é igual ao produto do total da respectiva coluna pelo total da respectiva linha, dividido pelo total geral.
+
+
+```{r}
+row.names(dados) = c("(0; 2,5]", "(2,5; 5]", "(5; 7,5]", "(7,5; 10]")
+dados = mutate(
+  dados, 
+  total = pub_obs + part_obs,
+  pub_esp = (total/sum(total))*sum(pub_obs),
+  part_esp = (total/sum(total))*sum(part_obs)
+  )
+```
+
+
+Agora, vamos calcular o qui-quadrado de Pearson, que é a estatística do nosso teste:
+
+```{r}
+xsi2 = sum( (dados$pub_obs - dados$pub_esp)^2/dados$pub_esp ) + 
+  sum( (dados$part_obs - dados$part_esp)^2/dados$part_esp )
+```
+
+Finalmente, vamos fazer o teste estatístico propriamente dito, lembrando que o número de graus de liberdade para a distribuição qui-quadrado é, nesse caso, 
+
+$$ \#gl = (r-1)(s-1) = 3 $$
+
+```{r}
+s = (nrow(dados) - 1)
+pchisq(xsi2, df = s, lower.tail = F)
+```
+
+
+Como podemos ver, o resultado é o mesmo que foi obtido por meio da função `chisq.test()`.
+
+Outro ponto interessante de ressaltar aqui é que a lógica desse teste é essencialmente igual àquela que será usada para testar independência entre duas variáveis.
+
+
+## Problema 7
+
+
+Nesse caso, também vamos testar a homogeneidade das duas distribuições: notas para os método convencional e novo. Primeiro, vamos entrar com a tabela de dupla entrada:
+
+
+```{r}
+tab = matrix(
+  c(33, 37, 17, 13),
+  byrow = F,
+  ncol = 2,
+  dimnames = list(c("convencional", "novo"), c("correto", "errado"))
+)
+```
+
+
+Vamos visualizar a tabela de contingência com a ajuda da library `KableExtra`:
+
+```{r}
+kable(tab) %>%
+  kable_styling(
+    full_width = F,
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+Por último, o teste qui-quadrado, para avaliar a homogeneidade das distribuições:
+
+$$ H_0: P_1 = P_2 $$
+
+$$ H_1: P_1 \neq P_2 $$
+
+```{r}
+chisq.test(tab)
+```
+
+Logo, como p > 0.05, não podemos rejeitar a hipótese de homogeneidade das duas distribuições.
+
+
+## Problema 8
+
+Aqui, para testar se ambas as drogas são igualmente eficazes no tratamento da doença, podemos fazer um teste de homogeneidade. Primeiramente, vamos fazer a leitura dos dados na forma de tabela:
+
+
+```{r}
+tab = matrix(
+  c(55, 48, 25, 32),
+  byrow = F,
+  ncol = 2,
+  dimnames = list(c("Droga A", "Droga B"), c("Eficaz", "Ñ Eficaz"))
+)
+```
+
+
+Vamos visualizar a tabela de contingência com a ajuda da library `KableExtra`:
+
+```{r}
+kable(tab) %>%
+  kable_styling(
+    full_width = F,
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+Em seguida, fazemos o teste qui-quadrado, para avaliar a homogeneidade das distribuições:
+
+$$ H_0: P_1 = P_2 $$
+
+$$ H_1: P_1 \neq P_2 $$
+```{r}
+chisq.test(tab)
+```
+
+Como p > 0.05, concluímos que não podemos rejeitar a hipótese nula de que as duas distribuições são iguais. Em outras palavras, de acordo com o resultado do teste estatístico aplicado, podemos dizer que as duas drogas são aproximadamente equivalentes.
+
+
+## Problema 9
+
+Novamente, faremos um teste de homogeneidade para verificar se a aceitabilidade do produto foi a mesma em ambas as cidades, baseados nas amostras coletadas. Vamos fazer a entrada dos dados:
+
+
+```{r}
+tab = matrix(
+  c(32, 12, 68, 38),
+  byrow = F,
+  ncol = 2,
+  dimnames = list(c("Cidade A", "Cidade B"), c("Gostaram", "Não gostaram"))
+)
+```
+
+
+Vamos visualizar a tabela de contingência com a ajuda da library `KableExtra`:
+
+```{r}
+kable(tab) %>%
+  kable_styling(
+    full_width = F,
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+
+Finalmente, fazemos o teste qui-quadrado, a fim de verificar a homogeneidade das duas distribuições:
+
+
+```{r}
+chisq.test(tab)
+```
+
+Portanto, como p > 0.05, concluímos que a proporção de pessoas que gostaram do novo produto é igual nas duas cidades.
+
+
+# Teste de Independência
+
+No R, o teste de independência também é implementado por meio da função `chisq.test()`. Na verdade, esse teste é idêntico ao de homogeneidade. A única diferença é o contexto e a conclusão que tiramos aqui.
+
+O que antes era interpretado com homogeneidade das duas distribuições, agora será interpretado como independência de duas variáveis aleatórias. Isso ocorre porque, quando temos a independência entre dois atributos (variáveis qualitativas), a distribuição de determinada grandeza de interesse é a mesma a despeito da variação do atributo (nível) de cada variável. Em outras palavras, a distribuição das ocorrências dentro de cada nível das duas variáveis é comparável à distribuição que ocorre dentro da amostra global.
+
+
+## Exemplo 14.8 
+
+Aqui, o intuito é verificar se a criação de determinado tipo  de cooperativa está associado ao fator regional. Vamos fazer a entrada dos dados na forma de uma tabela de dupla entrada:
+
+
+```{r}
+tab = matrix(
+  c(214, 51, 111, 237, 102, 304, 78, 126, 139, 119, 22, 48),
+  byrow = F, 
+  nrow = 3,
+  dimnames = list(
+    c("São Paulo", "Paraná", "Rio G. Sul"),
+    c("Consumidor", "Produtor", "Escola", "Outras")
+    )
+)
+```
+
+
+Vamos visualizar a tabela de contingência com a ajuda da library `KableExtra`:
+
+```{r}
+kable(tab) %>%
+  kable_styling(
+    full_width = F,
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+Agora vamos fazer o teste propriamente dito. Mas antes, vamos lembrar que a hipótese nula aqui é que as duas variáveis são independentes, conforme mostrado abaixo:
+
+$$ H_0: p_{ij} = p_i * p_j, \forall (i, j) $$
+
+$$ H_1: \exists (i, j) \mid p_{ij}  \neq p_i * p_j; \ i = 1, \ldots, r; j = 1, \ldots, s.$$ 
+
+
+```{r}
+chisq.test(tab)
+```
+
+Como o p-valor resultou ser essencialmente igual a zero, decidimos por rejeitar a hipótese nula de independência entre as variável Estado e tipo de cooperativa. Portanto, concluímos que as variáveis Estado e tipo de cooperativa não são independentes. Em outras palavras, podemos dizer que a distribuição dos tipos de cooperativa é diferente ao longo dos estados.
+
+
+## Problema 10
+
+Nesse caso, como o problema remete a dados de outro capítulo (cap. 4), 
+
+Uma amostra de 200 habitantes de uma cidade foi escolhida para declarar sua opinião sobre um certo projeto governamental. Verifique se a opinião dos moradores depende do local de residência.
+
+
+```{r}
+tab = matrix(
+  c(30, 60, 35, 25, 35, 15),
+  byrow = F,
+  ncol = 3,
+  dimnames = list(c("A favor", "Contra"), c("Urbano", "Suburbano", "Rural"))
+)
+```
+
+
+Vamos visualizar a tabela de contingência com a ajuda da library `KableExtra`:
+
+```{r}
+kable(tab) %>%
+  kable_styling(
+    full_width = F,
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+
+Finalmente, fazemos o teste qui-quadrado, para testar a independência entre as variáveis Opinião e Local de Residência:
+
+
+$$ H_0: p_{ij} = p_i * p_j, \forall (i, j) $$
+
+$$ H_1: \exists (i, j) \mid p_{ij}  \neq p_i * p_j; \ i = 1, \ldots, r; j = 1, \ldots, s.$$ 
+
+```{r}
+chisq.test(tab)
+```
+
+Como o p-valor resultou ser muito pequeno, p < 0.05, rejeitamos a hipótese nula de que a opinião dos moradores independe do local de residência.
+
+
+## Problema 11
+
+Aqui, queremos testar se o uso do hospital independe do sexo do indivíduo:
+
+
+```{r}
+tab = matrix(
+  c(100, 900, 150, 850),
+  byrow = F,
+  nrow = 2,
+  dimnames = list(c("Usaram", "Ñ usaram"), c("Homens", "Mulheres"))
+)
+```
+
+
+Vamos visualizar a tabela de contingência com a ajuda da library `KableExtra`:
+
+```{r}
+kable(tab) %>%
+  kable_styling(
+    full_width = F,
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+Agora, faremos o teste de hipótese:
+
+$$ H_0: p_{ij} = p_i * p_j, \forall (i, j) $$
+
+$$ H_1: \exists (i, j) \mid p_{ij}  \neq p_i * p_j; \ i = 1, \ldots, r; j = 1, \ldots, s.$$ 
+
+
+```{r}
+chisq.test(tab)
+```
+
+Logo, como p < 0.05, concluímos, para esse nível de significância, que o uso do hospital depende do sexo do indivíduo.
+
+
+## Problema 12:
+
+Uma pesquisa para verificar a tendência dos alunos a prosseguir os estudos, segundo a classe social do respondente, mostrou o quadro a seguir. Teste se existe dependência entre os fatores "tendência dos alunos de prosseguir os estudos" e "classe social" dos entrevistados.
+
+
+```{r}
+tab = matrix(
+  c(200, 200, 220, 280, 380, 720),
+  byrow = F,
+  nrow = 2,
+  dimnames = list(c("Sim", "Não"), c("Alta", "Media", "Baixa"))
+)
+```
+
+
+Vamos visualizar a tabela de contingência com a ajuda da library `KableExtra`:
+
+```{r}
+kable(tab) %>%
+  kable_styling(
+    full_width = F,
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+
+Por último, faremos o teste de hipótese:
+
+$$ H_0: p_{ij} = p_i * p_j, \forall (i, j) $$
+
+$$ H_1: \exists (i, j) \mid p_{ij}  \neq p_i * p_j; \ i = 1, \ldots, r; j = 1, \ldots, s.$$ 
+
+
+```{r}
+chisq.test(tab)
+```
+
+
+Portanto, como p < 0.05, concluímos que, no nível de significância de 5%, rejeitamos a hipótese de que a tendência dos alunos a prosseguir com os  estudos independe da classe social. Em outras palavras, como era de se esperar, a distribuição daqueles que prosseguem os estudos é diferente ao longo das classes sociais.
+
+
+## Problema 13:
+
+Os dados a seguir fornecem evidência de que existe independência entre as variáveis "fidelidade ao produto" e "sexo"?
+
+
+```{r}
+tab = matrix(
+  c(100, 100, 120, 80),
+  byrow = F,
+  ncol = 2,
+  dimnames = list(c("Alto", "Baixo"), c("Homem", "Mulher"))
+)
+```
+
+
+Vamos visualizar a tabela de contingência com a ajuda da library `KableExtra`:
+
+```{r}
+kable(tab) %>%
+  kable_styling(
+    full_width = F,
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+
+Por fim, testamos se a fidelidade ao produto independe do sexo do indivíduo:
+
+$$ H_0: p_{ij} = p_i * p_j, \forall (i, j) $$
+
+$$ H_1: \exists (i, j) \mid p_{ij}  \neq p_i * p_j; \ i = 1, \ldots, r; j = 1, \ldots, s.$$ 
+
+
+```{r}
+chisq.test(tab)
+```
+
+Logo, como p > 0.05, concluímos que, no nível de sigificância de 5%, há evidência de que as variáveis são independentes.
+
+
+# Problema 14:
+
+Verificar a existência de relação entre a opinião a respeito de um produto e o número de tentativas de entrevista.
+
+Vamos primeiro fazer a entrada dos dados e sua visualização na tela:
+
+
+```{r}
+tab = matrix(
+  c(62, 84, 24, 36, 42, 22, 12, 14, 24),
+  byrow = F,
+  nrow = 3,
+  dimnames = list(
+    c("Excelente", "Satisfatorio", "Insatisfatorio"),
+    c("1ª tentativa", "2ª tentativa", "3ª tentativa")
+  )
+)
+
+
+kable(tab) %>%
+  kable_styling(
+    full_width = F,
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+
+Agora testamos a hipótese de independência entre a opinião a respeito da qualidade do produto e as tentativas executadas pelo entrevistador:
+
+
+$$ H_0: p_{ij} = p_i * p_j, \forall (i, j) $$
+
+$$ H_1: \exists (i, j) \mid p_{ij}  \neq p_i * p_j; \ i = 1, \ldots, r; j = 1, \ldots, s.$$ 
+
+
+```{r}
+chisq.test(tab)
+```
+
+
+Logo, concluímos que a opinião do entrevistado sobre a qualidade do produto depende do número de tentativas de aplicação do questionário.
+
+
+# Teste para o coeficiente de correlação
+
+Esse teste usa um estimador para o coeficiente de correlação entre dois conjuntos de dados. A distribuição utilizada é a t de Student. No R, é implementado por meio da função `cor.test()`. Os argumentos são os dois conjuntos de dados (numéricos). Um outro argumento que podemos indicar é o método para o cálculo do coeficiente de correlação entre os dois grupos: Pearson, Kendall ou Spearman.
+
+## Exemplo 14.10 
+
+Queremos testar se existe ou não correlação entre o número de clientes e os anos de experiência para agentes de seguros.
+
+Vamos fazer a entrada e visualização dos dados:
+
+
+```{r}
+dados = data.frame(
+  agente = LETTERS[1:5],
+  experiencia = c(2, 4, 5, 6, 8),
+  Nclientes = c(48, 56, 64, 60, 72)
+)
+
+kable(dados) %>%
+  kable_styling(
+    full_width = F,
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+Agora, vamos fazer o teste de correlação propriamente dito, lembrando que, neste caso, a hipótese nula é que os dois conjuntos de dados não estão correlacionados:
+
+
+$$ H_0: \rho = 0 $$ 
+$$ H_1: \rho \neq 0 $$
+
+
+Note que o default para o teste logo abaixo é usar como method o coeficiente de correlação de Pearson, mas no R também existem as possibilidades kendall e spearman.
+
+
+```{r}
+cor.test(dados$experiencia, dados$Nclientes)
+```
+
+
+Como p > 0.01, concluímos que, no nível de siginificância de 1%, não podemos rejeitar a hipótese de que a correlação entre os dois conjuntos de dados é igual a zero.
+
+
+## Problema 15
+
+Nesse caso, como não temos as duas amostras, mas apenas o coeficiente de correlação entre elas, precisamos fazer o cálculo "manualmente":
+
+$$ H_0: \rho = 0 $$ 
+$$ H_1: \rho \neq 0 $$
+
+Aqui, os dados do problema são apenas o valor da correlação e o tamanho $n$, ambos referente à amostra.
+
+
+```{r}
+r = 0.6 #Valor da correlação na amostra
+n = 12 #Tamanho da amostra
+```
+
+Vamos agora calcular a estatística do teste, conforme estabelecido na página 428 do livro:
+
+```{r}
+t_0 = r*sqrt((n-2)/(1-r^2)) #Estatística do teste
+```
+
+E agora, o p-valor:
+
+
+```{r}
+2*min(c(pt(t_0, df = n-2), pt(t_0, df = n-2, lower.tail = F)))
+```
+
+
+Comop < 0.05, rejeitamos a hipótese nula de que a correlação entre as duas variáveis é nula.
+
+Para determinar um intervalo de confiança para $\rho$, primeiro fazemos um para $\mu_{\xi}$, já que esse parâmetro está relacionado com $\xi$, o qual, por sua vez, está relacionado com a estatística $r$. Aqui, devemos lembrar que já rejeitamos a hipótese de que a correlação é nula na população. Dessa forma, vamos usar a expressão número 14.7 do livro para o cálculo de $\xi$:
+
+
+$$ \xi = \dfrac{1}{2}\ln{\dfrac{1+r}{1-r}} $$
+
+```{r}
+xi_0 = 0.5*log((1+r)/(1-r), base = exp(1)) #Valor da estatística para rho diferente de zero
+```
+
+Além disso, sabemos que $\xi$ tem distribuição normal com média e variância dadas na expressão número 14.8. Assim, o erro padrão e o intervalo de confiança de 95% para $\mu_{\xi}$ estão dados abaixo:
+
+
+```{r}
+std_err = sqrt(1/(n-3)) #Erro padrão do estimador
+
+int_mu_xi = xi_0 + c(-1, 1)*qnorm(0.975)*std_err#intervalo de confiança para a estatística mu_xi
+
+cat(
+  "IC(mu_xi; 0,95) =",
+  int_mu_xi
+)
+```
+
+
+Finalmente, vamos obter o intervalo de confiança para $\rho$, usando para isso a primeira expressão da equação 14.8:
+
+
+$$ \mu_{\xi} = \dfrac{1}{2}\ln{\dfrac{1+\rho}{1-\rho}} $$
+
+Dessa forma, aplicando essa expressão para os dois valores que definem o IC mostrado acima, temos:
+
+```{r}
+int_conf_rho = (exp(2*int_mu_xi) -1)/(1 + exp(2*int_mu_xi))
+
+cat(
+  "IC(rho; 0,95) =",
+  int_conf_rho
+)
+```
+
+
+## Problema 16
+
+Aqui, como temos as amostras, podemos fazer o teste diretamente, com o uso da função `cor.test()`. Vamos fazer a entrada dos dados:
+
+
+```{r}
+dados = data.frame(
+  tempo = c(84, 108, 110, 133, 144, 152, 180, 196, 231),
+  volume = c(48, 72, 63, 82, 88, 109, 112, 123, 140)
+)
+```
+
+
+Agora, vamos testar a hipótese de que a correlação entre o tempo e o volume é igual a zero:
+
+$$ H_0: \rho = 0 $$ 
+$$ H_1: \rho \neq 0 $$
+
+```{r}
+cor.test(dados$tempo, dados$volume)
+```
+
+
+Logo, como p < 0.05, rejeitamos a hipótese nula de que a correlação entre as variáveis volume ocupado pela carga e tempo gasto para acondicioná-la é igual a zero. Um intervalo de confiança de 95% é dado na saída do teste.
+
+
+# Teste de Kolmogorov-Smirnov
+
+## Exemplo 14.6 (continuação: pág. 431)
+
+Aqui, queremos testar se o conjunto de dados apresentado foi ou não retirado de uma população com distribuiçãop normal:
+
+$$ H_0: P = N(10, 25) $$
+$$ H_1: P \neq N(10, 25) $$
+
+Vamos fazer a entrada dos dados:
+
+
+```{r}
+dados = c(1.04, 1.73, 3.93, 4.44, 6.37, 6.51, 
+          7.61, 7.64, 8.18, 8.48, 8.57, 8.65,
+          9.71, 9.87, 9.95, 10.01, 10.52, 10.69,
+          11.72, 12.17, 12.61, 12.98, 13.03, 13.16,
+          14.11, 14.60, 14.64, 14.75, 16.68, 22.14
+          )
+```
+
+Vale lembrar que, nesse caso, estamos fazendo um teste de aderência, isto é, queremos saber se a amostra dada acima
+foi retirada de uma população normal $N(10, 25)$. Para isso, vamos então fazer o teste de Kolmogorov-Smirnov:
+
+
+```{r}
+ks.test(
+  x = dados, 
+  y = "pnorm", 
+  alternative = "two.sided", 
+  mean = 10,
+  sd = 5)
+```
+
+
+Logo, como p > 0.05, não podemos rejeitar a hipótese nula e, portanto, concluímos que os dados acima foram retirados de uma distribuição normal $N(10, 25)$.
+
+Vamos verificar isso também graficamente, através de um gráfico quantil-quantil:
+
+```{r}
+dados = as.data.frame(dados)
+dados %>%
+  ggplot(aes(sample = dados)) + 
+  geom_qq(col = "red", size = 3) + 
+  geom_qq_line(col = "black", size = 0.8, linetype = "dashed") + 
+  labs(
+    x = "quantis teóricos",
+    y = "quantis amostrais",
+    title = "gráfico quantil-quantil para a amostra",
+    subtitle = "Verificando a normalidade dos dados"
+  ) + 
+  theme(text = element_text(size = 18))
+```
+
+Como podemos ver, o gráfico acima reforça o resultado já obtido por meio do teste de Kolmogorov-Smirnov.
+
+
+ > Observação: No R, o teste de Kolmogorov-Smirnov é implementado por meio da função `ks.test()`. Existem duas possibilidades: para uma amostra ou para duas
+amostras. No primeiro caso, estamos interessados em comparar os dados da nossa amostra com uma distribuição a ser especificada, usando sempre a distribuição acumulada. No segundo caso, queremos comparar duas distribuições empíricas, verificando se as populações são iguais ou não.
+
+
+# Problemas Suplementares
+
+## Problema 17
+
+Teste a independência entre o tipo de atividade e o tipo de propriedade de embarcações para os dados da tabela abaixo:
+
+```{r}
+tab = matrix(
+  c(5, 92, 141, 231, 51, 48),
+  byrow = F,
+  nrow = 2,
+  dimnames = list(
+    c("Estadual", "Particular"),
+    c("Costeira", "Fluvial", "Internacional")
+  )
+)
+
+kable(tab) %>%
+  kable_styling(
+    full_width = F,
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+Vamos relembrar as hipóteses nula e alternativa para um teste de independência:
+
+$$ H_0: p_{ij} = p_i * p_j, \forall (i, j) $$
+
+$$ H_1: \exists (i, j) \mid p_{ij}  \neq p_i * p_j; \ i = 1, \ldots, r; j = 1, \ldots, s.$$ 
+
+Por último, o teste propriamente dito:
+
+
+```{r}
+chisq.test(tab)
+```
+
+
+Logo, como p é essencialmente igual a zero, concluímos que as duas variáveis não são independentes, isto é, o tipo de atividade depende do tipo de propriedade das embarcações.
+
+
+## Problema 18
+
+Se a moeda tem a característica postulada, a probabilidade de sair cara é igual a 2/5. Queremos então fazer um teste de aderência, verificando, portanto, se os resultados dos lançamentos da moeda indicam que p = 2/5. Assim, temos as seguintes hipóteses nula e alternativa:
+
+
+$$ H_0: p_i = 2/5 $$
+$$ H_1: \exists p_i \neq 2/5 $$
+
+Ou seja, se a proporção é de duas caras para três coroas, a probabilidade de o resultdo de um único lançamento resultar cara é 2/5. Assim, a distribuição esperada é uma binomial com p = 2/5. Vamos então fazer a entrada das frequências observadas:
+
+
+```{r}
+x = c(72, 204, 228, 101, 20)
+```
+
+Agora, para saber se as frequências observadas indicam que $p = 2/5$, fazemos o teste qui-quadrado:
+
+
+```{r}
+chisq.test(x, p = dbinom(c(0:4), 4, 2/5))
+```
+
+Portanto, como o p-valor é maior que 0.05, não podemos rejeitar a hipótese nula de que a probabilidade de sair cara em cada lançamento é de fato igual a 2/5.
+
+## Problema 19
+
+Nesse caso, queremos fazer um teste de homogeneidade, verificando se as duas distribuições foram retiradas da mesma população, ou seja, se a preferência pelas marcas é a mesma em ambos os sexos. Vamos fazer a entrada e visualização dos dados:
+
+
+```{r}
+tab = matrix(
+  c(50, 110, 40, 150, 42, 8),
+  byrow = T,
+  ncol = 3,
+  dimnames = list(
+    c("Feminino", "Masculino"), 
+    c("Preferem A", "Preferem B", "Indecisos")
+    )
+)
+
+kable(tab) %>%
+  kable_styling(
+    full_width = F,
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+E por fim, o teste:
+
+$$ H_0: P_1 = P_2 $$
+
+$$ H_1: P_1 \neq P_2 $$
+
+```{r}
+chisq.test(tab)
+```
+
+Portanto, como o p-valor é essencialmente igual a zero, concluímos que as duas populações são diferentes, ou seja, a distribuição de preferência não é a mesma nos dois sexos.
+
+> Observação: O teste de homogeneidade realizado aqui verificou que as duas populações (sexo masculino e feminino) possuem diferentes distribuições da preferência pelas marcas A e B. Ou seja, concluímos que as distribuições não são homogêneas. Contudo, conforme já dito neste texto, o teste de homogeneidade equivale a um teste de independência. Nesse caso, a hipótese nula seria de que a preferência pelas marcas A e B independe do sexo do entrevistado. A conclusão do problema seria então que rejeitamos a hipótese nula.
+
+
+## Problema 21
+
+Nesse caso, queremos testar se existe correlação entre as variáveis "índice de analfabetismo" e "setor primário" no nível de 5%.
+
+Vejamos primeiro os dados:
+
+```{r}
+dados = data.frame(
+  s_primario = c(2, 2.5, 2.9, 3.3, 4.1, 4.3, 7),
+  analfabetismo = c(17.5, 18.5, 19.5, 22.5, 26.5, 16.6, 36.6)
+)
+
+kable(dados) %>%
+  kable_styling(
+    full_width = F,
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+E agora, os teste propriamente dito:
+
+$$ H_0: \rho = 0 $$ 
+$$ H_1: \rho \neq 0 $$
+
+```{r}
+cor.test(dados$s_primario, dados$analfabetismo)
+```
+
+Portanto, concluímos que, no nível de significância de 5%, existe correlação entre o percentual de pessoas empregadas no setor primário e o índice de analfabetismo nas regiões.
+
+
+## Problema 24
+
+Queremos verificar qual par de variáveis possui maior correlação. Vamos inserir os dados:
+
+
+```{r}
+x = c(4, 5, 4, 5, 8, 9, 10, 11, 12, 12)
+y = c(1, 1, 2, 3, 3, 5, 5, 6, 6, 6)
+z = c(6, 7, 10, 10, 11, 9, 12, 10, 11, 14)
+```
+
+Agora, vamos fazer os testes dois a dois:
+
+
+```{r}
+cat("X e Y:")
+cor.test(x, y)
+cat("X e Z:")
+cor.test(x, z)
+```
+
+Logo, no nível de significância de 5%, rejeitamos a hipótese nula de que a  correlação é igual a zero em ambos os casos. Ainda, com as amostras dadas, a correlação observada é maior para o par $(X, Y)$.
+
+
+## Problema 25
+
+Nesse caso, vamos comparar o coefiente de correlação entre as variáveis "resultado do teste" e "número de errros cometidos ao realizar a tarefa" nas duas populações: homens e mulheres.
+
+Para isso, vamos usar os resultados do CM-1 para testar se os coeficientes de 
+correlação entre as duas variáveis de interesse são iguais para as duas populações.
+
+Os valores de correlação na amostra e seus respectivos tamanhos estão mostrados abaixo, conforme dado no enunciado:
+
+```{r}
+r_H = -0.52
+n_H = 52
+r_M = -0.82
+n_M = 28
+```
+
+
+Primeiramente, notamos que ambos os coefientes de correlação são negativos, significando que existe uma correlação negativa entre o resultado obtido no teste e o número de erros cometidos ao realizar a tarefa em ambos os grupos. Ou seja, esses resultados mostram que, quanto maior a pontuação no teste, menos erros os participantes cometeram ao realizar a tarefa.
+
+Agora, vamos usar os resultados do CM-1 para testar se os coeficientes de correlação entre as duas variáveis de interesse são iguais para as duas populações.
+
+Vamos escrever as estatísticas individuais para as variáveis $\xi$ de cada população:
+
+
+```{r}
+xbar_H = 0.5*log((1 + r_H)/(1 - r_H), base = exp(1)) 
+
+xbar_M = 0.5*log((1 + r_M)/(1 - r_M), base = exp(1))
+```
+
+e a estatística para a diferença entre as duas médias é, então,
+
+
+```{r}
+D = xbar_H - xbar_M
+```
+
+e o erro padrão para a diferença entre as duas médias é 
+
+```{r}
+std_err = 1/(n_H - 3) + 1/(n_M - 3) 
+```
+
+
+Conforme visto no CM-1, se as duas populações têm o mesmo coeficiente de correlação, a variável $D$ acima tem distribuição normal com média zero e variância dada acima. 
+Logo, podemos testar a seguinte hipótese:
+
+
+$$ H_0: \mu_D = 0 $$
+
+$$ H_1: \mu_D \neq 0 $$
+
+e por último, calculamos o p-valor:
+
+```{r}
+p = 2*min(
+  c(
+    pnorm(D, mean = 0, sd = std_err), 
+    pnorm(D, mean = 0, sd = std_err, lower.tail = F)
+    )
+  )
+
+p
+```
+
+Logo, como o p-valor resultou ser essencialmente igual a zero, rejeitamos a hipótese nula de que os dois coeficientes de correlação são iguais, ou seja, concluímos que os coeficiente são diferentes para as duas populações.
+
+
+## Problema 26
+
+Esse problema envolve o uso do modelo multinomial para distribuição de probabilidades. Esse modelo é uma generalização do modelo binomial. De fato, o modelo multinomial se reduz ao modelo binomial para $s = 2$ (apenas dois eventos possíveis).
+
+Vamos admitir os dados do problema:
+
+
+```{r}
+p_NF = 0.52 #probabilidade de um trabalhador escolhido ao acaso nunca ter 
+# fumado
+p_FP = 0.12 #probabilidade de um trabalhador escolhido ao acaso ter fumado no passado
+p_F = 0.36 #probabilidade de um trabalhador escolhido ao acaso ser fumante atualmente
+```
+
+Temos então as probabilidades de um trabalhador escolhido ao acaso nunca ter fumado, ter umado no passado ou ser fumante atualmente. Para saber a probabilidade de termos, dentre 10 escolhidos ao acaso, 5 que nunca fumaram, 2 que fumaram no passado e 3 que fumam atualmente, usamos a função `dmultinom()` do R:
+
+
+```{r}
+dmultinom(c(5, 2, 3), size = 10, prob = c(0.52, 0.12, 0.36))
+```
+
+Logo, a probabilidade procurada é aproximadamente igual a 6,4%.
+
+
+## Problema 27
+
+Primeiro, vamos fazer a admissão dos dados:
+
+```{r}
+dados = c(0.145, 0.430, 0.882, 0.191, 0.224, 0.173, 0.561, 0.060, 0.810, 0.785,
+          0.299, 0.932, 0.125, 0.661, 0.960, 0.413, 0.853, 0.968, 0.603, 0.384,
+          0.516, 0.356, 0.517, 0.321, 0.092, 0.372, 0.527, 0.421, 0.229, 0.064,
+          0.901, 0.178, 0.519, 0.504, 0.179, 0.887, 0.239, 0.041, 0.452, 0.990,
+          0.433, 0.248, 0.251, 0.206, 0.974, 0.275, 0.124, 0.775, 0.874, 0.983
+          )
+```
+
+Vamos fazer dois testes diferentes: primeiro um teste qui-quadrado e depois um teste de Kolmogorov-Smirnov.
+
+Para aplicar o teste qui-quadrado, vamos primeiro categorizar os dados, dividindo-os de acordo com os quartis da distribuição hipotetizada em $H_0$, isto é, da $U(0,1)$.
+
+```{r}
+q = qunif(c(0.25, 0.50, 0.75), min = 0, max = 1)
+```
+
+```{r}
+x = dados %>%
+  cut(c(0, q, 1)) %>%
+  table() %>%
+  as.vector()
+```
+
+Por último, vamos testar a hipótese dada:
+
+$$ H_0: P = U(0,1) $$
+
+$$ H_1: P \neq U(0,1) $$
+```{r}
+chisq.test(x, p = rep(0.25, length(x)))
+```
+
+Logo, como o p-valor resultou ser maior do que o nível de significância do teste, que nesse caso é de 5%, não podemos rejeitar a hipótese nula de que esse conjunto de dados foi retirado de uma distribuição $U(0, 1)$.
+
+Vamos agora fazer o mesmo teste usando a distribuição de Kolmogorov-Smirnov:
+
+```{r}
+ks.test(dados, y = "punif")
+```
+Como era de se esperar, o resultado é o mesmo, indicando que esses dados foram retirados de uma distribuição $U(0,1)$.
+
+
+## Problema 28
+
+Aqui, queremos testar, no nível de confiança de 1%, se os dados provêm de uma distribuição $exp(0.5)$. Vamos primeiro admitir os dados:
+
+
+```{r}
+dados = c(0.378, 1.007, 0.228, 0.123,
+          0.391, 0.470, 0.389, 0.089,
+          0.458, 0.368, 0.627, 0.646,
+          0.063, 0.831, 0.480, 0.093,
+          0.009, 0.387, 0.093, 0.400
+          )
+```
+
+Agora, vamos categorizar os dados, dividindo-os de acordo com os quartis da distribuição hipotetizada em $H_0$, isto é, da $exp(0.5)$, lembrando que o argumento `rate` da exponencial no R é o inverso da média da distribuição:
+
+
+```{r}
+q = qexp(c(0.25, 0.50, 0.75), rate = 1/0.5)
+```
+
+
+```{r}
+x = dados %>%
+  cut(c(0, q, Inf)) %>%
+  table() %>%
+  as.vector()
+```
+
+Vamos agora testar a hipótese:
+
+$$H_0: P = Exp(0.5)$$
+
+$$H_1: P \neq Exp(0.5)$$
+
+E por fim, o teste propriamente dito:
+
+
+```{r}
+chisq.test(x, p = rep(0.25, length(x)))
+```
+
+Como o p-valor resultou ser menor que o nível de significância do teste, que é de 1%, rejeitamos a hipótese nula de que os dados provêm de uma distribuição exponencial com $\beta = 0,5$.
+
+
+## Problema 29
+
+Primeiramente, vamos fazer a entrada dos dados do CD-Notas:
+
+```{r, message=F}
+dados = read_excel(
+  "Dados_EB_originais.xlsx", 
+  sheet = "CD-Notas"
+  )
+dados = unlist(dados)
+dados = as.vector(dados)
+```
+Primeiro, vamos fazer um teste de aderência por meio da distribuição qui-quadrado. Como não foi dito no problema quais os parâmetros da normal segundo a qual os dados supostamente estão distribuídos, vamos usar os respectivos estimadores para calculá-los por meio da amostra:
+
+
+```{r}
+xbar = mean(dados)
+s = sd(dados)
+```
+
+Vamos agora dividir os dados em catgegorias, segundo os quartis de uma $N(x_{bar}, s^2)$
+
+
+```{r}
+q = qnorm(c(0.25, 0.50, 0.75), mean = xbar, sd = s)
+```
+
+```{r}
+x = dados %>%
+  cut(c(-Inf, q, Inf)) %>%
+  table() %>%
+  as.vector()
+```
+
+Vamos agora testar a hipótese de que os dados tem distribuição normal:
+
+$$ H_0: P = N(xbar, s^2) $$
+
+$$ H_1: P \neq N(xbar, s^2) $$
+
+```{r}
+chisq.test(x, p = rep(0.25, length(x)))
+```
+
+Como o p-valor resultou ser maior que 5%, que é a significância que estamos usando para o teste, concluímos que não podemos rejeitar a hipótese nula de que a população da qual os dados foram retirados é normal.
+
+Agora, vamos testar a mesma hipótese dada acima, mas usando o teste de Kolmogorov-Smirnov:
+
+
+```{r}
+ks.test(dados, "pnorm", mean = xbar, sd = s, alternative = "two.sided")
+```
+
+Da mesma forma como no teste feito logo acima, não podemos rejeitar a hipótese de que os dados são normalmente distribuídos.

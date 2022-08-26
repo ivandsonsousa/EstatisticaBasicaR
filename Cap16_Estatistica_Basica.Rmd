@@ -1,0 +1,249 @@
+---
+title: 'Estatística Básica: Capítulo 16'
+author: "Ivandson Praeiro de Sousa"
+date: "2022-08-14"
+output:
+  html_document:
+    number_sections: no
+    toc: yes
+    toc_float: yes
+    theme: cerulean
+    # highlight: spacelab
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introdução
+
+Neste capítulo[^bussab_morettin], estudamos modelos de regressão linear. Conforme descrito no texto, a regressão linear simples é um modelo para estimação da média condicional $E(Y|x) = \mu(x)$ a partir dos valores observados numa amostra de tamanho $n$, $(x_i, y_i)$. Nesse caso, a relação entre as variáveis $x$ e $Y$ pode ser modelada por
+
+$$ y_i = E(Y|x_i) + e_i = \mu(x_i) + e_i, $$
+
+ou seja, dizemos que o que observamos flutua em torno da média de maneira aleatória e, para podermos estimar e fazer inferências acerca dos parâmetros do modelo, fazemos algumas suposições pertinetes à respeito do comportamento dos resíduos $e_i$.
+
+> A inclusão do fator aleatório aqui (erro ou resíduos) reflete o fato de desconhecermos outros fatores que porventura influenciam a variável $Y$. Queremos modelar o comportamento de $Y$ com $X$ e, para isso, modelamos toda a variação em $Y$ não devida a $X$ por meio dos resíduos $e_i$.
+
+Também vimos que o termo amplo **linear**, usado independentemente da forma gráfica do modelo a ser ajustado, advêm do fato de que o modelo é linear nos parâmetros. De fato, o modelo de regressão linear nos permite obter desde os parâmetros do modelo linear (linha reta) até os parâmetros de modelos não lineares como o polinomial ou exponencial.
+
+Vimos ainda que o modelo de regressão linear a ser postulado para um dado fenômeno observado por meio de uma amostra depende do conhecimento que temos daquele fenômeno. Nesse sentido, o palpite sobre o modelo pode ser melhor embasado com o auxílio de um diagrama de dispersão.
+
+
+## Carregamento dos pacotes necessários
+
+```{r, message=FALSE}
+library(dplyr)
+library(ggplot2)
+library(readxl)
+library(combinat)
+library(kableExtra)
+```
+
+
+# Exemplos e problemas do livro
+
+## Exemplo 16.1
+
+```{r}
+dados = read_excel("exemplo-15.1.xlsx")
+```
+
+Aqui, vamos ajustar um modelo linear, com $y$ sendo o tempo de reação ao estímulo e $x$ sendo a idade do indivíduo.
+
+
+```{r}
+x = dados$X
+y = dados$Y
+n = nrow(dados)
+```
+
+O estimador para a média condicional obtido a partir do nosso modelo terá a forma
+
+$$ \hat{y_i} = \hat{\alpha} + \hat{\beta}x_i, $$
+
+com 
+
+$$ \hat{\alpha} = \bar{y} - \hat{\beta}\bar{x}$$
+
+$$ \hat{\beta} = \dfrac{\Sigma_{i = 1}^n x_iy_i - n\bar{x}\bar{y}}{\Sigma_{i = 1}^n x_i^2 - n\bar{x}^2} $$
+
+Primeiro, vamos estimar os parâmetros $\alpha$ e $\beta$ do modelo "manualmente". Depois, faremos com o auxílio da função `lm()` do R.
+
+
+```{r}
+beta_hat = (sum(x*y) - n*mean(x)*mean(y))/(sum(x^2) - n*mean(x)^2)
+alpha_hat = mean(y) - beta_hat*mean(x)
+
+alpha_hat
+beta_hat
+```
+Logo, nosso modelo ajustado pode ser escrito como
+
+$$ \hat{y}_i = 80.5 + 0.90x_i $$
+
+Podemos também obter os estimadores para os coeficientes através da função `lm()`:
+
+
+```{r}
+lm(formula = Y ~ X, dados) %>% 
+  summary()
+```
+
+> Um ponto que merece observação aqui é a forma da equação obtida (estimada) para a reta de regressão. Percebemos que nela não entra o termo de erro (resíduos). Isso ocorre porque um dos pressupostos dos modelos de regressão linear é que os resíduos têm esperança igual a zero e variância constante. Então, se estamos usando estimadores não viesados, eles "acertam" o valor do parâmetro. Dessa forma, a esperança do estimador para os resíduos deve ser igual a zero.
+
+
+## Problema 1
+
+(a) Vamos usar a função `lm()` para encontrar a reta de mínimos quadrados para $z$ (acuidade visual) em função de $x$ (idade):
+
+```{r}
+modelo = lm(formula = Z ~ X, dados)
+modelo$coefficients
+```
+
+Perceba que, desta vez, decidimos não usar a função `summary()` para exibir o resultado da aplicação do modelo, uma vez que agora apenas estamos interessados nos estimadores do parâmetros do modelo.
+
+Podemos então escrever a reta de mínimos quadrados como sendo:
+
+$$ \hat{y}_i = 101,50 - 0,55x_i. $$
+
+(b) Nesse caso, o parâmetro $\alpha$ significa a acuidade visual que a pessoa já tem ao nascer. O parâmetro $\beta$ significa a variação que o indivíduo comum sofre em sua acuidade visual para cada ano que se passa. Como ele é negativo aqui, isso significa que a pessoa perde sensibilidade visual a cada ano.
+
+(c) Aqui também podemos usar a saída da função `lm()` para olhar para os resíduos do modelo. Vamos colocá-los lado a lado com os valores das variáveis de interesse:
+
+
+```{r}
+kable(data.frame(individuo = dados$indivíduo, X = dados$X, Z = dados$Z, e = modelo$residuals)) %>%
+  kable_styling(
+    full_width = F,
+    bootstrap_options = c("striped", "hover", "condensed", "responsive")
+  )
+```
+Como podemos ver, o desvio mais alto ocorre para o indivíduo nº 19, cujo módulo é igual a 19,5.
+
+
+## Problema 2
+
+(a) Primeiro, vamos admitir os dados do problema:
+
+
+```{r}
+dados = data.frame(
+  x = c(10, 13, 5, 7, 20),
+  y = c(4, 3, 6, 5, 2)
+)
+```
+
+Agora, vamos obter os estimadores:
+
+```{r}
+modelo = lm(formula = y ~ x, dados)
+modelo$coefficients
+```
+
+Logo, a reta de mínimos quadrados para este modelo será escrita como
+
+$$ \hat{y}_i = 6,87 - 0,26x_i. $$
+
+(b) Vamos usar a biblioteca `ggplot2` para fazer o gráfico pedido:
+
+
+```{r}
+ggplot(aes(x, y), data = dados) +
+  geom_point(size = 2, color = "red") +
+  stat_smooth(formula = y ~ x, method = "lm", size = 1.2) + 
+  labs(
+    title = "gráfico de dispersão e reta ajustada",
+    subtitle = "modelo linear para aluguel versus idade"
+  ) + 
+  theme(text = element_text(size = 16))
+```
+
+Como vemos, apesar do reduzido número de pontos, o modelo ajustado parece apropriado.
+
+
+(c) Nesse caso, o coeficiente angular nos diz que o valor médio do aluguel diminui 0,26 unidades a cada aumento de um ano na idade da casa.
+
+(d) O coeficiente linear nesse caso nos diz que o valor médio do aluguel de casas novas é igual a 6,87 unidades.
+
+
+## Problema 3
+
+(a) Vamos primeiro escrever os dados do problema, observando que existem repetições:
+
+
+```{r}
+dados = data.frame(
+  Pot = c(38, 43, 32, 26, 33, 19, 27, 23, 14, 21),
+  Temp = c(30, 30, 50, 50, 50, 70, 70, 70, 90, 90)
+)
+```
+
+
+(b) Agora, o gráfico de dispersão, já com a reta ajustada:
+
+
+```{r}
+ggplot(aes(x = Temp, y = Pot), data = dados) + 
+  geom_point(size = 2, col = "black") + 
+  geom_smooth(formula = y ~ x, size = 1.2, col = "orange", method = "lm") +
+  labs(
+    title = "Gráfico de dispersão para potência versus temperatura",
+    x = "Temperatura",
+    y = "Potência"
+  ) + 
+  theme(text = element_text(size = 16))
+```
+
+(c) Apesar dos dois pontos com resíduos maiores que os demais, percebemos que os pontos realmente se ajustam razoavelmente bem a uma linha reta.
+
+
+(d) Para responder a essa pergunta, vamos primeiro obter a reta de regressão linear para potência versus temperatura:
+
+```{r}
+modelo = lm(formula = Pot ~ Temp, data = dados)
+
+modelo$coefficients
+```
+
+Assim, podemos escrever o nosso modelo como:
+
+$$ \hat{y}_i = 50,457 - 0,381x_i $$
+Assim, vemos que a potência média será igual a zero quando a temperatura for igual a `r -modelo$coefficients[1]/modelo$coefficients[2]`.
+
+
+## Problema 4
+
+Vamos retomar os dados do exemplo 15.1:
+
+```{r}
+dados = read_excel("exemplo-15.1.xlsx")
+```
+
+Nesse caso, queremos investigar a reta de regressão para a variável $Y$ como função de $Z$:
+
+```{r}
+ggplot(aes(Z, Y), data = dados) +
+  geom_point(size = 2, color = "red") +
+  stat_smooth(formula = y ~ x, method = "lm", size = 1.2) + 
+  labs(
+    title = "gráfico de dispersão e reta ajustada",
+    subtitle = "modelo linear para tempo de reação versus acuidade visual"
+  ) + 
+  theme(text = element_text(size = 16))
+```
+
+Vamos obter a reta de regressão:
+
+```{r}
+modelo = lm(formula = Y ~ Z, data = dados)
+
+modelo$coefficients
+```
+
+$$ \hat{y}_i = 162,079 - 0,642z_i $$
+
+
+[^bussab_morettin]: MORETTIN, Pedro Alberto; BUSSAB, Wilton Oliveira. **Estatística básica**. Saraiva Educação SA, 2017.
