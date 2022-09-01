@@ -244,6 +244,22 @@ modelo$coefficients
 ```
 
 $$ \hat{y}_i = 162,079 - 0,642z_i $$
+## Problema 5
+
+Primeiro, devemos lembrar que os dados do problema 1 são aqueles do exemplo 15.1:
+
+
+```{r}
+dados = read_excel("exemplo-15.1.xlsx")
+```
+
+Agora, vamos aplicar a função `anova()` para obter a tabela ANOVA para o modelo considerado no problema 1, ou seja, um modelo de regressão linear para a variável resposta $Y$ (tempo de reação ao estímulo), tendo como preditora a variável $Z$ (acuidade visual):
+
+
+```{r}
+anova(lm(formula = Y ~ Z, dados))
+```
+
 
 
 [^bussab_morettin]: MORETTIN, Pedro Alberto; BUSSAB, Wilton Oliveira. **Estatística básica**. Saraiva Educação SA, 2017.
