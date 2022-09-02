@@ -244,6 +244,7 @@ modelo$coefficients
 ```
 
 $$ \hat{y}_i = 162,079 - 0,642z_i $$
+
 ## Problema 5
 
 Primeiro, devemos lembrar que os dados do problema 1 são aqueles do exemplo 15.1:
@@ -253,13 +254,196 @@ Primeiro, devemos lembrar que os dados do problema 1 são aqueles do exemplo 15.
 dados = read_excel("exemplo-15.1.xlsx")
 ```
 
-Agora, vamos aplicar a função `anova()` para obter a tabela ANOVA para o modelo considerado no problema 1, ou seja, um modelo de regressão linear para a variável resposta $Y$ (tempo de reação ao estímulo), tendo como preditora a variável $Z$ (acuidade visual):
+Agora, vamos aplicar a função `anova()` para obter a tabela ANOVA para o modelo considerado no problema 1, ou seja, um modelo de regressão linear para a variável resposta $Y$ (acuidade visual), tendo como preditora a variável $X$ (idade):
 
 
 ```{r}
-anova(lm(formula = Y ~ Z, dados))
+tabela = anova(lm(formula = Z ~ X, dados))
+tabela
+```
+
+(a) Conforme as páginas 469 e 470 do livro-texto, sabemos que:
+
+$$ S^2 = \dfrac{SQTot}{n-1} $$
+
+$$ S_e^2 = \dfrac{SQRes}{n-p}  = \dfrac{SQRes}{n-2}$$
+Assim, podemos calculá-los com base na tabela ANOVA acima:
+
+
+```{r}
+n = nrow(dados)
+S2 = sum(tabela$`Sum Sq`)/(n-1)
+S2
+Se2 = tabela$`Sum Sq`[2]/(n-2)
+Se2
 ```
 
 
+(b) Vemos então que a redução na soma do quadrado dos resíduos não foi grande ao passar do modelo mais simples com um único parâmetro para o nosso modelo de regressão linear.
+
+(c) Ainda com o resultado da tabela ANOVA, podemos obter:
+
+
+```{r}
+rsq = tabela$`Sum Sq`[1]/sum(tabela$`Sum Sq`)
+rsq
+```
+
+ou seja, em torno de 16%. Essa é a proporção da variabilidade total da acuidade visual que é explicada pela relação linear com a idade.
+
+
+## Problema 6
+
+Primeiro, vamos admitir os dados do problema em um dataframe:
+
+
+```{r}
+dados = data.frame(
+  tempo = c(10.8, 14.4, 19.6, 18, 8.4, 15.2, 11, 13.3, 23.1),
+  volume = c(20.39, 24.92, 34.84, 31.72, 13.59, 30.87, 17.84, 23.22, 39.65)
+)
+```
+
+(a) Para fazer o diagrama de dispersão pedido, utilizaremos o pacote `ggplot2`. Vamos aproveitar para inserir a reta de regressão no mesmo plot:
+
+
+```{r}
+ggplot(aes(x = tempo, y = volume), data = dados) + 
+  geom_point(size = 2, color = "red") + 
+  stat_smooth(formula = y ~ x, method = "lm", size = 1.2) +
+  labs(
+    x = "Volume",
+    y = "Tempo",
+    title = "Diagrama de dispersão",
+    subtitle = "Tempo versus Volume"
+  ) + 
+  theme(text = element_text(size = 16))
+```
+
+
+(b) Para obeter os estimadores dos parâmetros da reta de regressão, utilizaremos novamente a função `lm()`:
+
+
+```{r}
+lm(formula = tempo ~ volume, data = dados)
+```
+Assim, a reta de regressão pedida tem a forma:
+
+$$ \hat{t_i} = 0,6625 + 0,5393 v_i $$
+
+(c) 
+
+```{r}
+tabela = anova(lm(formula = tempo ~ volume, data = dados))
+tabela
+```
+
+
+(d) Conforme já visto acima, o valor de $S^2$ se relaciona com a soma dos quadrados totais, enquanto $S_e^2$ se relaciona com a soma dos quadrados dos resíduos:
+
+
+```{r}
+n = nrow(dados)
+S2 = sum(tabela$`Sum Sq`)/(n-1)
+S2
+Se2 = tabela$`Sum Sq`[2]/(n-2)
+Se2
+```
+
+Como vemos, $S^2 >> S_e^2$. Vamos obter o $R^2$ para o modelo:
+
+```{r}
+rsq = tabela$`Sum Sq`[1]/sum(tabela$`Sum Sq`)
+rsq
+```
+Assim, cerca de 96% da variabilidade total do tempo gasto para acondicionar os objetos é explicada pela relação linear com o volume.
+
+(e) Conforme os resultados da tabela ANOVA obtida, vemos que conhecer o volume do pacote ajuda sim a prever o tempo de empacotamento.
+
+
+## Problema 7
+
+Como estamos o mesmo nome para os conjuntos de dados de cada problema, estamos sobrepondo uns sobre os outros. Dessa forma, precisamos reescrever aqui os dados do problema 2:
+
+```{r}
+dados = data.frame(
+  x = c(10, 13, 5, 7, 20),
+  y = c(4, 3, 6, 5, 2)
+)
+```
+
+Finalmente, o resultado pedido:
+
+```{r}
+tabela = anova(lm(formula = y ~ x, dados))
+tabela
+```
+
+
+
+```{r}
+rsq = tabela$`Sum Sq`[1]/sum(tabela$`Sum Sq`)
+rsq
+```
+
+
+Como vemos, cerca de 94% da variação no preço dos aluguéis das casas é explicado pela respectiva idade. Indo além, vemos que esse resultado não é mero acaso, já que o p-valor do teste é $p < 0.01$.
+
+
+## Problema 8
+
+Novamente, vamos admitir os dados do problema 3:
+
+
+```{r}
+dados = data.frame(
+  Pot = c(38, 43, 32, 26, 33, 19, 27, 23, 14, 21),
+  Temp = c(30, 30, 50, 50, 50, 70, 70, 70, 90, 90)
+)
+```
+
+Vamos agora obter a tabela ANOVA para o modelo ajustado e o valor de $R^2$:
+
+```{r}
+tabela = anova(lm(formula = Pot ~ Temp, dados))
+tabela
+```
+
+
+```{r}
+rsq = tabela$`Sum Sq`[1]/sum(tabela$`Sum Sq`)
+rsq
+```
+
+Assim, vemos que cerca de 85% da variação na potência dos antibióticos pode ser explicada pela relação linear com a temperatura na qual eles são acondicionados, com $p < 0.01$, o que indica que esse resultado é significativo. Além disso, podemos olhar para os parâmetros do ajuste:
+
+```{r}
+lm(formula = Pot ~ Temp, dados)
+```
+Logo, vemos que a potência diminui com o aumento da temperatura.
+
+
+## Problema 9
+
+Vamos receber novamente os dados do problema 4:
+
+
+```{r}
+dados = read_excel("exemplo-15.1.xlsx")
+```
+
+Agora, vamos obter a tabela ANOVA para o modelo linear ajustado para explicar a variável $Y$ (tempo de reação ao estímulo visual) como função da acuidade visual $Z$:
+
+```{r}
+tabela = anova(lm(formula = Y ~ Z, data = dados))
+tabela
+```
+
+```{r}
+rsq = tabela$`Sum Sq`[1]/sum(tabela$`Sum Sq`)
+rsq
+```
+
+Como vemos, aproximadamente 57% da variabilidade do tempo de resposta ao estímulo é explicada pela relação linear com a acuidade visual do indivíduo. Além disso, vemos que o resultado é significativo na maioria dos níveis de significância comumente utilizados.
 
 [^bussab_morettin]: MORETTIN, Pedro Alberto; BUSSAB, Wilton Oliveira. **Estatística básica**. Saraiva Educação SA, 2017.
