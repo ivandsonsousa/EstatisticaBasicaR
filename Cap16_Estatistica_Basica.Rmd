@@ -30,6 +30,8 @@ Também vimos que o termo amplo **linear**, usado independentemente da forma gr�
 
 Vimos ainda que o modelo de regressão linear a ser postulado para um dado fenômeno observado por meio de uma amostra depende do conhecimento que temos daquele fenômeno. Nesse sentido, o palpite sobre o modelo pode ser melhor embasado com o auxílio de um diagrama de dispersão.
 
+Para o desenvolvimento dos exemplos e dos problemas deste capítulo, iremos utilizar as funções `lm()`, para obter as estimativas dos parâmetros de um modelo de regressão linear passado como argumento da função, `conf.int()`, para obter os intervalos de confiança para os parâmetros do modelo, e a função `predict()`, para obter o intervalo de predição para uma futura observação da variável resposta dada pelo nosso modelo postulado.
+
 
 ## Carregamento dos pacotes necessários
 
@@ -445,5 +447,106 @@ rsq
 ```
 
 Como vemos, aproximadamente 57% da variabilidade do tempo de resposta ao estímulo é explicada pela relação linear com a acuidade visual do indivíduo. Além disso, vemos que o resultado é significativo na maioria dos níveis de significância comumente utilizados.
+
+
+
+## Problema 10
+
+Primeiro, vamos novamente ler os dados do problema 5:
+
+```{r}
+dados = read_excel("exemplo-15.1.xlsx")
+```
+
+
+(a) Vamos obter os intervalos de confiança de 95% para os parâmetros do nosso modelo linear para acuidade visual ($Z$) em função da idade ($x$):
+
+
+```{r}
+lm(formula = Z ~ X, dados) %>%
+  confint(parm = 2)
+```
+
+(b) E agora, o IC de 90% para o parâmetro $\alpha$:
+
+
+```{r}
+lm(formula = Z ~ X, dados) %>%
+  confint(parm = 1, level = 0.90)
+```
+
+(c) Vamos obter a tabela ANOVA para o nosso modelo e, a partir do resultado (estatística F), rejeitar ou não a hipótese nula $H_0: \beta = 0$.
+
+```{r}
+lm(formula = Z ~ X, dados) %>%
+  anova()
+```
+
+De acordo com nosso resultado, não podemos rejeitar a hipótese nula no nível de 0,05, já que o p-valor obtido foi de $\approx 0,08$. Deste modo, concluímos que o resultado não é significativo, ou seja, o grau de explicação que o nosso modelo fornece para a variável resposta aparentemente é um mero produto do acaso.
+
+
+(d) Ainda usando o mesmo conjunto de dados, vamos lembrar de que queremos estimar a acuidade visual média a partir do nosso modelo linear, dado o valor de $x = 28$ e, em seguida, determinar o IC para este resultado:
+
+```{r}
+lm(formula = Z ~ X, dados) %>%
+  predict(newdata = data.frame(X = 28), interval = "confidence", level = 0.95)
+```
+O que essa função está fazendo é calcular o valor da variável resposta para $x = 28$ e, em seguida, determinar o intervalo de confiança para a média condicional (resposta), dada pelo nosso modelo.
+
+(e) Na mesma linha, vamos obter agora o intervalo de predição para a acuidade visual (variável resposta) do grupo etário com 28 anos (variável explicativa):
+
+```{r}
+lm(formula = Y ~ X, dados) %>%
+  predict(newdata = data.frame(X = 28), interval = "predict", level = 0.95)
+```
+Esse resultado nos diz que, se obtivermos um número grande de amostras de pares $(x, Z)$, todas do mesmo tamanho $n$, cerca de 95% dos intervalos de predição assim construídos conterão o verdadeiro valor da variável resposta, dado aquele valor da variável explicativa $x$.
+
+
+## Problema 11
+
+Como o conjunto de dados é o mesmo do problema anterior, vamos apenas olhar novamente para a tabela ANOVA construída no problema 9:
+
+
+```{r}
+tabela = anova(lm(formula = Y ~ Z, data = dados))
+tabela
+```
+
+Vamos também calcular o valor do coeficiente de explicação $R^2$ do nosso modelo:
+
+```{r}
+tabela$`Sum Sq`[1]/sum(tabela$`Sum Sq`)
+```
+
+Portanto, vemos que cerca de 57% da variabilidade da nossa variável reposta $Y$ é explicada pelo nosso modelo. Ainda, olhando para a estatística F da nossa tabela ANOVA, vemos que o resultado é siginificativo, já que $p < 0,05$. Assim, podemos rejeitar a hipótese nula de que $\beta = 0$ e concluir que a acuidade visual pode explicar o tempo de resposta a um estímulo visual segundo o nosso modelo.
+
+
+## Problema 12
+
+Para saber se a quantidade de fertilizante de fato nos ajuda a explicar o comportamento da produção de soja, precisamos verificar se o resultado para o nosso parâmetro $\beta$ é significativo. Como nos foi dado o valor da estatística $t$ para cada parâmetro estimado, precisamos apenas ver se ele está dentro ou fora da regisão crítica para rejeição da hipótese nula $H_0: \beta = 0$.
+
+
+```{r}
+cat(
+  "Região de aceitação:",
+  qt(p = c(0.025, 0.975), df = 20-2)
+)
+```
+
+Como o valor da estatística $t$ para o parâmetro $\beta$ está dentro da regiçaõ de aceitação (ou fora da região crítica), não podemos rejeitar a hipótese nula de que $\beta = 0$. Em outras palavras, concluímos que o nosso modelo provavelmente não serve para explicar o comportamento da produção de soja como função da quantidade de fertilizante utilizado.
+
+Podemos também olhar para o p-valor, o que irá nos levar à mesma conclusão:
+
+```{r}
+pt(1.65, df = 20-2)
+```
+
+
+```{r}
+par(mfrow = c(2,2))
+plot(modelo, which = c(1:4), pch = 16)
+```
+
+
 
 [^bussab_morettin]: MORETTIN, Pedro Alberto; BUSSAB, Wilton Oliveira. **Estatística básica**. Saraiva Educação SA, 2017.
