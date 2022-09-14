@@ -541,8 +541,25 @@ Podemos também olhar para o p-valor, o que irá nos levar à mesma conclusão:
 pt(1.65, df = 20-2)
 ```
 
+## Problema 13
+
+## Problema 14
+
+## Problema 15
+
+
+## Análise de resíduos
+
+- A função `par()` é usada para definir parâmetros de gráficos
+
+- O argumento `mfrow` divide o gráfico conforme uma matriz $n_r \times c_c$, plotando primeiro os quadros horizontais.
+
+- A função `plot()`
+
 
 ```{r}
+dados = read_excel("exemplo-15.1.xlsx")
+modelo = lm(formula = Y ~ X, dados)
 par(mfrow = c(2,2))
 plot(modelo, which = c(1:4), pch = 16)
 ```
