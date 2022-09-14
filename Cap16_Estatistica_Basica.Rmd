@@ -557,6 +557,89 @@ pt(1.65, df = 20-2)
 - A função `plot()`
 
 
+## Problema 13
+
+Primeiro, vamos novamente obter o conjunto de dados referente ao exemplo 15.1:
+
+
+```{r}
+dados = read_excel("exemplo-15.1.xlsx")
+```
+
+Nesse caso, queremos ajustar um modelo linear para $Z$ como função de $x$:
+
+```{r}
+modelo = lm(formula = Z ~ X, dados)
+```
+
+Agora, vamos construir os 3 tipos de resíduos apresentados no livro:
+
+
+```{r}
+n = nrow(dados)
+e = dados$Z - as.vector(modelo$fitted.values) #residuos
+se = sqrt(sum(e^2)/(n-2)) #Estimador da variância dos resíduos
+z = e/se #residuos padronizados
+v = 1/n + (dados$X-mean(dados$X))^2/sum((dados$X-mean(dados$X))^2)
+r = e/(se*sqrt(1-v)) #residuo estudentizado
+```
+
+Para plotar os 3 tipos de resíduos calculados como função dos valores ajustados, vamos usar a biblioteca `ggplot`:
+
+```{r}
+ei = dados %>%
+  ggplot(aes(x = X, y = e)) +
+  geom_point(color = "red", size = 2) +
+  geom_hline(yintercept = 0, color = "darkgray") + 
+  labs(
+    x = "idade",
+    y = "resíduos"
+  )
+
+zi = dados %>%
+  ggplot(aes(x = X, y = z)) +
+  geom_point(color = "green", size = 2) +
+  geom_hline(yintercept = 0, color = "darkgray") + 
+  labs(
+    x = "idade",
+    y = "resíduos padronizados"
+  )
+
+ri = dados %>%
+  ggplot(aes(x = X, y = r)) +
+  geom_point(color = "blue", size = 2) +
+  geom_hline(yintercept = 0, color = "darkgray") + 
+  labs(
+    x = "idade",
+    y = "resíduos estudentizados"
+  )
+
+cowplot::plot_grid(ei, zi, ri)
+```
+
+Olhando apenas para os resíduos versus valores ajustados, não vemos uma violação clara ao modelo. É necessário olhar para outros gráficos de resíduos, como os que são mostrados abaixo:
+
+```{r}
+par(mfrow = c(2,2))
+plot(modelo, which = c(1:4), pch = 16)
+```
+
+Olhando agora para a curva dos resíduos padronizados, vemos, portanto, que a hipótese de homocedasticidade parece ser violada, já que a variância diminui com x.
+
+
+## Problema 14
+
+(a) Aqui, vemos uma violação da hipótese de homocedasticidade, já que a variância dos resíduos parece depender de x.
+
+(b) Nesse caso, o modelo matemático adotado parece ser inadequado, já que a média dos resíduos varia com os valores ajustados (ou com x), o que indica que o modelo ajustado não descreve adequadamente como y se comporta quando x muda. 
+
+(c) Mesma interpretação que em (b).
+
+(d) Os resíduos parecem ter média zero. Contudo, existe um dado discrepante.
+
+## Problema 15
+
+
 ```{r}
 dados = read_excel("exemplo-15.1.xlsx")
 modelo = lm(formula = Y ~ X, dados)

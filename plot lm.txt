@@ -1,0 +1,16 @@
+Quando aplicamos a função plot() a um objeto do tipo lm(), existem 6 saídas disponíveis:
+
+1 - gráfico de dispersão para resíduos contra valores ajustados
+
+2 - gráfico de localização da escala da raíz dos resíduos versus valores ajustados
+
+3 - q-q plot para a distribuição normal
+
+4 - gráfico de distâncias de Cook versus rótulos de linha
+
+5 - resíduos versus alavancagem
+
+6 - distâncias de Cook versus alavancagem
+
+
+Por padrão, a saída apresenta os 3 primeiros e o quinto.
