@@ -703,4 +703,63 @@ dados %>%
 Aqui, vemos que os resíduos aumentam no decorrer da coleta dos dados.
 
 
+
+## Exemplo 16.9 (página 489)
+
+Vamos usar os dados desse exemplo do livro para obter o estimador de mínimos quadrados e o modelo linear de regressão linear para o caso simples em que $\alpha = 0$. Vamos admitir os dados do problema:
+
+```{r}
+dados = data.frame(
+  x = c(119, 155, 174, 190, 196, 233, 272, 253, 276),
+  y = c(112, 152, 172, 183, 192, 228, 263, 239, 263)
+)
+```
+
+
+Agora, vamos obter o estimador para o parâmetro $\beta$ do nosso modelo linear com intercepto nulo:
+
+```{r}
+modelo = lm(formula = y ~ x - 1, dados)
+modelo
+```
+Obtivemos então o resultado 
+
+$$ \hat{y} = 0,9648x. $$
+Vamos também obter a tabela ANOVA para o modelo, a fim de avaliar a estatística F e o respectivo p-valor, a fim de inferir a significância do valor de $\beta$ encontrado:
+
+```{r}
+anova(modelo)
+```
+Como o p-valor encontrado é essencialmente nulo, vemos que o resultado é significativo. Além disso, também com o resultado da tabela ANOVA obtida, vemos que o modelo adotado explica a maior parte da variância de x.
+
+
+Podemos também obter um intervalo de confiança para $\beta$, com 95% de nível de confiança:
+
+```{r}
+confint(modelo)
+```
+Vamos também plotar o modelo ajustado, com o auxílio da biblioteca `ggplot2`:
+
+
+```{r}
+dados %>%
+  ggplot(aes(x = x, y = y, dados)) +
+  geom_point(size = 2, col = "orange") + 
+  geom_smooth(formula = y ~ x - 1, col = "black", method = "lm") +
+  labs(
+    title = "Modelo linear com intercepto nulo"
+  ) +
+  theme(text = element_text(size = 16))
+```
+
+Por fim, a análise dos resíduos do modelo:
+
+```{r}
+par(mfrow = c(2,2))
+plot(modelo, which = c(1:4), pch = 16)
+```
+
+Vemos, portanto, que os resíduos do modelo parecem violar a hipótese de média zero e variância constante.
+
+
 [^bussab_morettin]: MORETTIN, Pedro Alberto; BUSSAB, Wilton Oliveira. **Estatística básica**. Saraiva Educação SA, 2017.
