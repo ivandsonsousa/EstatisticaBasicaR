@@ -541,12 +541,6 @@ Podemos também olhar para o p-valor, o que irá nos levar à mesma conclusão:
 pt(1.65, df = 20-2)
 ```
 
-## Problema 13
-
-## Problema 14
-
-## Problema 15
-
 
 ## Análise de resíduos
 
@@ -554,7 +548,23 @@ pt(1.65, df = 20-2)
 
 - O argumento `mfrow` divide o gráfico conforme uma matriz $n_r \times c_c$, plotando primeiro os quadros horizontais.
 
-- A função `plot()`
+- A função `plot()`, quando aplicada a um objeto do tipo `lm()`, dispõe de 6 saídas:
+
+
+1 - gráfico de dispersão para resíduos contra valores ajustados
+
+2 - gráfico de localização da escala da raíz dos resíduos versus valores ajustados
+
+3 - q-q plot para a distribuição normal
+
+4 - gráfico de distâncias de Cook versus rótulos de linha
+
+5 - resíduos versus alavancagem
+
+6 - distâncias de Cook versus alavancagem
+
+
+Por padrão, a saída apresenta as 3 primeiras e a quinta opções. Porém, outras podem ser selecionadas com o argumento `which`.
 
 
 ## Problema 13
@@ -635,18 +645,62 @@ Olhando agora para a curva dos resíduos padronizados, vemos, portanto, que a hi
 
 (c) Mesma interpretação que em (b).
 
-(d) Os resíduos parecem ter média zero. Contudo, existe um dado discrepante.
+(d) Os resíduos parecem ter média zero e variância constante. Contudo, existe um dado discrepante.
+
 
 ## Problema 15
 
+Vamos receber os dados do problema:
+
 
 ```{r}
-dados = read_excel("exemplo-15.1.xlsx")
-modelo = lm(formula = Y ~ X, dados)
-par(mfrow = c(2,2))
-plot(modelo, which = c(1:4), pch = 16)
+dados = data.frame(
+  preditor = c(11, 20, 14, 22, 12, 25, 15, 
+               14, 19, 21, 18, 22, 16, 21
+               ),
+  residuo = c(-1, -2, 3, -3, -1, 5, 0,
+              0, 3, -2, 2, -5, 0, 1
+              ),
+  ordem = c(9, 6, 13, 1, 7, 14, 8,
+            3, 12, 4, 11, 2, 10, 5
+            )
+)
 ```
 
+(a) Vamos usar a biblioteca `ggplot2` para obter o gráfico dos resíduos versus variável predidora:
+
+
+```{r}
+dados %>%
+  ggplot(aes(x = preditor, y = residuo)) + 
+  geom_point(size = 2, col = "orange") + 
+  geom_hline(yintercept = 0, color = "darkgray") +
+  labs(
+    x = "preditor",
+    y = "residuos"
+  ) +
+  theme(text = element_text(size = 16))
+```
+
+Apenas com o resultado do gráfico, não dar para fornecer um posicionamento conclusivo. Porém, aparentemente, os resíduos não possuem variância constante.
+
+
+(b)
+
+
+```{r}
+dados %>%
+  ggplot(aes(x = ordem, y = residuo)) + 
+  geom_point(size = 2, col = "orange") + 
+  geom_hline(yintercept = 0, color = "darkgray") +
+  labs(
+    x = "preditor",
+    y = "residuos"
+  ) +
+  theme(text = element_text(size = 16))
+```
+
+Aqui, vemos que os resíduos aumentam no decorrer da coleta dos dados.
 
 
 [^bussab_morettin]: MORETTIN, Pedro Alberto; BUSSAB, Wilton Oliveira. **Estatística básica**. Saraiva Educação SA, 2017.
