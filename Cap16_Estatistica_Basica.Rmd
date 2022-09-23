@@ -762,4 +762,196 @@ plot(modelo, which = c(1:4), pch = 16)
 Vemos, portanto, que os resíduos do modelo parecem violar a hipótese de média zero e variância constante.
 
 
+
+# Problemas Suplementares
+
+## Problema 16
+
+Vamos chamar novamente os dados referidos no problema (exemplo 15.1), já que estamos sobrescrevendo os datasets ao longo do relatório:
+
+
+```{r}
+dados = read_excel("exemplo-15.1.xlsx")
+```
+
+
+(a) Agora, vamos novamente obter os estimadores de mínimos quadrados para a reta de regressão de Z como função de X:
+
+```{r}
+modelo = lm(Z ~ X, dados)
+modelo
+```
+Assim, a reta de regressão estimada para os nossos dados será
+
+$$ \hat{z} = 101,50 - 0,55*x. $$
+
+Para construir o IC de 95% para a acuidade visual média dos indivíduos com 18 anos de idade, vamos usar a função `predict()`
+
+
+```{r}
+modelo %>%
+  predict(newdata = data.frame(X = 18), interval = "confidence", level = 0.95)
+```
+Assim, o IC procurado é
+
+$$ IC(E(Z| x = 18)) = [82,88; 100,32] $$
+
+(b) Na mesma linha do item (a),
+
+```{r}
+modelo %>%
+  predict(newdata = data.frame(X = 30), interval = "confidence", level = 0.95)
+```
+
+$$ IC(E(Z| x = 30)) = [80,57; 89,43] $$
+
+(c) 
+
+```{r}
+modelo %>%
+  predict(newdata = data.frame(X = 80), interval = "confidence", level = 0.95)
+```
+
+$$ IC(E(Z| x = 80)) = [25,89; 89,10] $$
+
+Como podemos ver, o IC de 95% é muito mais largo para o grupo com 80 anos do que para os dois grupos analisados nos itens (a) e (b). Isso ocorre porque o grupo com 80 anos está muito afastado da média de idade do conjunto de dados como um todo. Essa informação é levada em conta no cálculo do IC.
+
+
+## Problema 17
+
+Vamos novamente admitir os dados do problema 6 e ajustá-los ao modelo linear usando o método de regressão linear:
+
+```{r}
+dados = data.frame(
+  tempo = c(10.8, 14.4, 19.6, 18, 8.4, 15.2, 11, 13.3, 23.1),
+  volume = c(20.39, 24.92, 34.84, 31.72, 13.59, 30.87, 17.84, 23.22, 39.65)
+)
+```
+
+
+```{r}
+dados %>%
+  lm(formula = tempo ~ volume) %>%
+  predict(newdata = data.frame(volume = 30), interval = "confidence")
+```
+Aqui, usamos a função predict para nos fornecer uma previsão do valor ajustado quando a variável preditora (volume) é igual a 30. As outras duas são os valores da esquerda e direita para um intervalo de confiança de 95% em torno deste valor ajustado, que não foram pedidos no problema.
+
+
+## Problema 18
+
+```{r}
+dados = data.frame(
+  meses = c(1:10),
+  erros = c(30, 28, 24, 20, 18, 14, 13, 10, 7, 6)
+)
+```
+
+(a) Vamos plotar o diagrama de dispersão já com a reta de regressão linear ajustada pelo método de mínimos quadrados:
+
+
+```{r}
+dados %>%
+  ggplot(aes(x = meses, y = erros)) +
+  geom_point(size = 2, col = "orange") + 
+  stat_smooth(formula = y ~ x, method = "lm") +
+  labs(
+    title = "Reta de regressão linear ajustada",
+    subtitle = "Método de MQO"
+  ) +
+  theme(text = element_text(size = 16))
+```
+
+(b) Para determinar os coeficientes da equação de mínimos quadrados, vamos utilizar a função `lm()`:
+
+
+```{r}
+lm(formula = erros ~ meses, dados)
+```
+
+Assim, a reta de mínimos quadrados ordinários pedida é
+
+$$ \hat{y} = 32,27 - 2,78*x. $$
+
+(c) Já obtido em (a).
+
+
+(d) Primeiro, vamos obter as duas médias amostrais:
+
+```{r}
+cat(
+  "(xbar, ybar) =",
+  "[",
+  mean(dados$meses), mean(dados$erros),
+  "]"
+)
+```
+Para ver a posição desses valores relativamente à reta de regressão, vamos plotá-la novamente, desta vez traçando duas retas em $(\bar{x}, \bar{y})$:
+
+
+```{r}
+dados %>%
+  ggplot(aes(x = meses, y = erros)) +
+  geom_point(size = 2, col = "orange") + 
+  stat_smooth(formula = y ~ x, method = "lm") +
+  geom_vline(xintercept = mean(dados$meses), col = "red") +
+  geom_hline(yintercept = mean(dados$erros), col = "red") +
+  labs(
+    title = "Reta de regressão linear ajustada",
+    subtitle = "Método de MQO"
+  ) +
+  theme_classic() +
+  theme(text = element_text(size = 16))
+```
+
+
+Como vemos, o ponto $(\bar{x}, \bar{y})$ passa pela reta de regressão. Isso decorre do ajuste de mínimos quadrados, em que os estimadores dos parâmetros da equação de regressão dependem das médias $\bar{x}$ e $\bar{y}$.
+
+(e) Para determinar o número esperado de erros para um digitador com x = 5 meses de experiência, precisamos ver o valor do ajuste da nossa reta de mínimos quadrados quando $x = 5$. Para tanto, vamos usar a função `predict()`:
+
+
+```{r}
+dados %>%
+  lm(formula = erros ~ meses) %>%
+  predict(newdata = data.frame(meses = 5), interval = "confidence", level = 0.95)
+```
+
+Novamente, usamos a função `predict()` para estimar o número médio de erros esperados para um digitador com $x = 5$ meses de experiência. A saída da função também fornece o intervalo de confiança para essa medida.
+
+
+## Problema 19
+
+
+Vamos primeiro fornecer os dados do problema ao R:
+
+
+```{r}
+dados = data.frame(
+  renda = c(3, 5, 10, 20, 30, 50, 70, 100, 150, 200),
+  gasto = c(1.5, 2, 6, 10, 15, 20, 25, 40, 60, 80)
+)
+```
+
+Agora, vamos obter a reta de regressão a partir do ajuste de mínimos quadrados:
+
+
+```{r}
+modelo = lm(formula = gasto ~ renda, dados)
+modelo
+```
+
+Assim, a equação procurada tem a forma
+
+$$ \hat{y} = 0,95 + 0,39*x $$
+
+(a) Assim como feito no problema anterior, para obter uma estimativa do gasto médio com alimentação (variável resposta) para uma família com renda x = 170 (variável preditora), podemos usar a função `predict()`:
+
+
+
+
+(b)
+
+(c)
+
+## Problema 20
+
 [^bussab_morettin]: MORETTIN, Pedro Alberto; BUSSAB, Wilton Oliveira. **Estatística básica**. Saraiva Educação SA, 2017.
