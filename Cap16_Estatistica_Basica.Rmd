@@ -946,12 +946,327 @@ $$ \hat{y} = 0,95 + 0,39*x $$
 (a) Assim como feito no problema anterior, para obter uma estimativa do gasto médio com alimentação (variável resposta) para uma família com renda x = 170 (variável preditora), podemos usar a função `predict()`:
 
 
+```{r}
+modelo %>%
+  predict(newdata = data.frame(renda = 170), interval = "confidence")
+```
+
+Novamente, o resultado nos mostra o valor médio previsto pelo modelo quando a renda é igual a 170, bem como o intervalo de confiança de 95% em torno deste valor.
+
+Também é interessante observar que a função `predict()`, quando não fornecemos o argumento `newdata`, nos dá como resultado todos os valores ajustados e os respectivos intervalos de confiança.
 
 
-(b)
+(b) Aqui, precisamos fazer o mesmo que no problema anterior, comn a diferença de que agora estamos fazendo uma previsão para o gasto médio com alimentação para um valor da variável preditora que está fora dos nossos dados. Isto é chamado de extrapolação:
 
-(c)
+
+```{r}
+modelo %>%
+  predict(newdata = data.frame(renda = 1000), interval = "confidence")
+```
+
+Para opinar se este valor parece razoável ou não, precisamos compará-lo com os demais valores ajustados:
+
+
+```{r}
+predict(modelo, interval = "confidence")
+```
+
+Levando em consideração que o valor da variável preditora aqui é 5 vezes o maior valor observado nos dados e, como a relação é linear, é razoável esperar que o gasto médio com alimentação para uma família com renda igual a 1000 esteja em torno de 400, já que o gasto médio previsto pelo modelo quando a renda é igual a 200 é cerca de 80.
+
+
+(c) Apesar do resultado anterior parecer razoável do ponto de vista do modelo, sabemos que essa previsão não é realística, já que, na prática, o gasto com alimentação tende a se estabilizar após certo ponto, isto é, existe um limite em que o gasto com alimentação não cresce mais com o aumento da renda.
+
 
 ## Problema 20
+
+Feito direto no livro.
+
+
+## Problema 21
+
+Conforme o modelo ajustado, considerando a interpretação do parâmetro $\beta$, quando se aumenta os anúncios em uma unidade, em média, aumenta-se a quantidade de carros vendidos em 1,516.
+
+
+## Problema 22
+
+Vamos primeiro passar os dados do problema para o R:
+
+```{r}
+dados = data.frame(
+  X = c(0.5, 0.5, 1, 1, 1, 4, 4, 4, 4.5, 4.5, 4.5, 5, 5, 5, 5.5, 6, 6),
+  Y = c(163, 182, 978, 466, 549, 495, 723, 681, 619, 1049, 1033, 890, 1522, 1194, 987, 764, 1373)
+)
+```
+
+(a) Agora, vamos fazer o ajuste do modelo utilizando regressão linear:
+
+```{r}
+modelo = lm(formula = Y ~ X, dados)
+modelo
+```
+
+Assim, o modelo ajustado é
+
+$$ \hat{y} = 323,6 + 131,7*x. $$
+Vamos testar a hipótese nula de que $\beta = 0$, a qual, se não rejeitada, indicaria que a variável resposta não seria explicada de acordo com a relação linear dada com a variável preditora. Para fazer esse teste, vamos usar a estatística $F$
+dada, a qual tem distribuição $F(1, n-2)$. Para tanto, vamos calcular o p-valor, lembrando que esse é um teste unilateral à direita. Ou seja, a hipótese nula apenas será rejeitada para valores grandes da estatística $F$, determinados de acordo com a significância do teste. Podemos obter a estatística $F$ e o p-valor associado a partir da tabela anova para o modelo:
+
+
+```{r}
+tabela = anova(modelo)
+tabela
+```
+
+Como vemos, $p < 0,01$, indicando que devemos rejeitar a hipótese nula de que $\beta = 0$ e, portanto, concluímos que a relação obtida entre as duas variáveis não é mero acaso.
+
+
+(b) Para responder a essa pergunta, vamos olhar para o valor de $R^2$ para o nosso modelo, o qual pode ser obtido da tabela ANOVA como sendo
+
+$$ R^2 = \dfrac{SQReg}{SQTot} $$
+
+```{r}
+rsq = tabela$`Sum Sq`[1]/sum(tabela$`Sum Sq`)
+rsq
+```
+Ou seja, o modelo ajustado explica cerca de 48% da variabilidade da variável preditora. Como o valor dessa grandeza pode estar entre 0 e 1, sendo que a unidade indica a perfeição do modelo, concluímos que esse modelo aparentemente não é o mais apropriado, já que o valor obtido está mais perto de zero do que de 1.
+
+O valor de $R^2$ também pode ser obtido de maneira mais direta, por meio da função `summary()`:
+
+
+```{r}
+summary(modelo)
+```
+(c) Se queremos saber a previsão do custo médio de mantenção para tratores com 5 anos, de acordo com nosso modelo, podemos usar a função `predict()`:
+
+
+```{r}
+modelo %>%
+  predict(newdata = data.frame(X = 5), interval = "confidence", level = 0.90)
+```
+
+O resultado já contêm o intervalo de confiança de 90% pedido.
+
+
+(d) Para responder a essa pergunta, não podemos recorrer a estatística $F$ que resulta da tabela ANOVA, já que aquela apenas serve para testar a hipótese nula $H_0: \beta_1 = 0$ contra a alternativa $H_1: \beta_1 > 0$. Devemos, ao invés disso, calcular o valor da estatística $t(\hat{\alpha})$ observada e então obter o p-valor associado.
+
+$$ H_0: \beta_0 = 300 $$
+
+$$ H_1: \beta_0 > 300 $$
+Vamos usar a expressão dada na página 478:
+
+$$ t({\hat{\alpha}}) = \dfrac{\hat{\alpha} - \alpha}{S_e}\sqrt{\dfrac{n\sum(x_i - \bar{x})^2}{\sum x_i^2}} $$
+
+Lembrando que a estimativa do desvio padrão dos resíduos é igual a média dos quadrados do resíduo, e essa informação está na nossa tabela ANOVA já obtida. Além disso, o estimador $\hat{\alpha}$ pode ser obtido diretamente do modelo ajustado:
+
+
+```{r}
+n = nrow(dados)
+S_e = sqrt(tabela$`Mean Sq`[2]) #estimativa do desvio padrão dos resíduos
+alpha_hat = as.double(modelo$coefficients[1]) #parâmetro alpha estimado
+t_alpha = ((alpha_hat - 300)/S_e)*sqrt(n*sum((dados$X - mean(dados$X))^2)/sum(dados$X^2))
+```
+
+
+Agora que já temos a estatística do teste em mãos, precisamos apenas lembrar que ela tem distribuição t de Student com $n-2$ graus de liberdade para então calcular o p-valor. Além disso, como o teste é unilateral à direita, precisamos fornecer o argumento `lower.tail = FALSE`:
+
+
+```{r}
+pt(t_alpha, df = n-2, lower.tail = F)
+```
+Como o valor p calculado é maior que a significância do teste, que é de 0,05, não podemos rejeitar a hipótese nula de que $\beta_0 = 300$.
+
+O resultado faz sentido, já que o valor estimado para este parâmetro foi igual a 323,62 e, devido à variabilidade do estimador, não temos poder estatístico para rejeitar a hipótese nula.
+
+
+## Problema 23
+
+Primeiro, vamos carregar os dados para o R:
+
+
+```{r}
+dados = data.frame(
+  pais = 15:21,
+  filhos = c(15.4, 15.7, 16, 16.3, 16.6, 17, 17.3)
+)
+```
+
+
+Agora, vamos obter as estimativas dos parâmetros da reta de regressão linear:
+
+
+```{r}
+modelo = lm(formula = filhos ~ pais, dados)
+modelo
+```
+
+Logo, a reta de regressão linear ajustada tem a forma
+
+
+$$ \hat{y} = 10,61 + 0,32*x $$
+
+De acordo com o modelo estimado, a cada alteração de 1 centésimo de polegada no diâmetro médio das ervilhas-pais, aumenta-se 0,32 centésimo de polegada no diâmetro das ervilhas-filhas. Além disso, o diâmetro médio mínimo estimado para as ervilhas-filhas é de cerca de 10,61 centésimos de polegada.
+
+
+## Problema 24
+
+
+O pesquisador poderia obter várias amostras de medidas feitas pelo instrumento para concentrações conhecidas do ácido no sangue. Assim, se o instrumento estiver calibrado, a relação entre a concentração medida (variável dependente, $Y$) e a concentração real (variável independente, $x$) deveria ser uma linha reta com $\beta \approx 1$ e $\alpha \approx 0$.
+
+Assim, as hipóteses a serem adotadas sobre os parâmetros do respectivo modelo de regressão linear seriam:
+
+
+Para o parâmetro $\alpha$:
+
+$$ H_0: \alpha = 0 $$
+$$ H_1: \alpha \neq 0 $$
+Para o parâmetro $\beta$:
+
+
+$$ H_0: \beta = 1 $$
+
+$$ H_1: \beta \neq 1, $$
+
+dados o modelo com a forma matemática
+
+
+$$ \hat{y} = \hat{\alpha} + \hat{\beta}*x. $$
+
+## Problema 25
+
+Primeiramente, vamos carregar os dados:
+
+
+```{r}
+dados = data.frame(
+  X = c(rep(1, 4), rep(3, 5), rep(5, 3), rep(10, 4), rep(15, 4)),
+  Y = c(1.1, 0.7, 1.8, 0.4, 
+        3, 1.4, 4.9, 4.4, 4.5,
+        7.3, 8.2, 6.2,
+        12, 13.1, 12.6, 13.2,
+        18.7, 19.7, 17.4, 17.1)
+)
+```
+
+Agora, vamos ajustar os parâmetros do modelo:
+
+
+```{r}
+modelo = lm(formula = Y ~ X, dados)
+modelo
+```
+Logo, o modelo ajustado tem a forma:
+
+
+$$ \hat{y} = 0,16 + 1,23*x. $$
+
+Finalmente, vamos testar as hipóteses pedidas. Para isso, temos que calcular a estatística $t(\hat{\beta})$ observada para a amostra e, a partir disso, calcular o p-valor:
+
+
+```{r}
+tabela = anova(modelo)
+n = nrow(dados)
+S_e = sqrt(tabela$`Mean Sq`[2]) #estimativa do desvio padrão dos resíduos
+beta_hat = as.double(modelo$coefficients[2]) #parâmetro beta estimado
+t_beta = ((beta_hat - 1)/S_e)*sqrt(sum((dados$X - mean(dados$X))^2))
+```
+
+
+E então, calculamos o p-valor, lembrando que estamos interessados apenas no teste unicaudal:
+
+
+```{r}
+pt(t_beta, df = n-2, lower.tail = F)
+```
+
+Logo, como $p < 0,01$, decidimos por rejeitar a hipótese nula de que $\beta_1 = 1$ e, portanto, concluímos que o instrumento não está calibrado, já que, para isso, o valor de $\beta$ deveria ser próximo de 1 e o resultado significativo.
+
+
+## Problema 26
+
+
+(a) Esse modelo seria adequado apenas para uma faixa de precipitação. A partir de certo valor de precipitação, a produção de trigo seria prejudicada pelo excesso de água.
+
+
+(b) Uma relação matemática mais adequada provavelmente seria algo com um termo senoidal, conforme mostrada abaixo:
+
+
+```{r}
+x = seq(0, pi, by = 0.1)
+y = sin(x)
+plot(x, y, pch = 16)
+```
+
+
+## Problema 27
+
+Vamos primeiro obter os dados:
+
+
+```{r}
+dados = data.frame(
+  Y = c(17, 21, 49, 54, 64, 48, 34, 63, 62, 72, 61, 91),
+  log_X = c(rep(0.36, 4), rep(0.56, 4), rep(0.76, 4))
+)
+```
+
+Agora, vamos obter os estimadores dos parâmetros ajustados ao modelo linear:
+
+
+```{r}
+modelo = lm(formula = Y ~ log_X, dados)
+modelo
+```
+Logo, nosso modelo tem a forma
+
+$$ \hat{y} = 2,25 + 90,62*\log{x}. $$
+
+Vamos obter também a tabela ANOVA para o nosso modelo:
+
+
+```{r}
+tabela = anova(modelo)
+tabela
+```
+Olhando para a tabela, de cara já rejeitamos a hipóteses $H_0: \beta_1 = 0$, já que o p-valor associada à estatística F obtida é menor que 0,01. Portando, concluímos que o logaritmo da dose de insulina aplicada ajuda a prever a queda nos níveis de açucar no sangue. Podemos também observar a saída da função `summary()` aplicada ao modelo:
+
+
+```{r}
+summary(modelo)
+```
+Aqui, vemos novamente o valor p associado à estatística F e o $R^2$, que indica que cerca de 54% da variação na queda dos níveis de açucar no sangue é explicado pela log-dose de insulina.
+
+
+## Problema 28
+
+
+
+## Problema 29
+
+
+
+## Problema 30
+
+
+
+## Problema 31
+
+
+
+## Problema 32
+
+
+
+## Problema 33
+
+
+
+## Problema 34
+
+
+
+## Problema 35
+
+
+
 
 [^bussab_morettin]: MORETTIN, Pedro Alberto; BUSSAB, Wilton Oliveira. **Estatística básica**. Saraiva Educação SA, 2017.

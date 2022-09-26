@@ -4247,16 +4247,369 @@ modelo</code></pre>
 <p>Assim, a equação procurada tem a forma</p>
 <p><span class="math display">\[ \hat{y} = 0,95 + 0,39*x \]</span></p>
 <ol style="list-style-type: lower-alpha">
-<li><p>Assim como feito no problema anterior, para obter uma estimativa
-do gasto médio com alimentação (variável resposta) para uma família com
+<li>Assim como feito no problema anterior, para obter uma estimativa do
+gasto médio com alimentação (variável resposta) para uma família com
 renda x = 170 (variável preditora), podemos usar a função
-<code>predict()</code>:</p></li>
-<li></li>
-<li></li>
+<code>predict()</code>:</li>
+</ol>
+<pre class="r"><code>modelo %&gt;%
+  predict(newdata = data.frame(renda = 170), interval = &quot;confidence&quot;)</code></pre>
+<pre><code>##        fit      lwr      upr
+## 1 67.55844 65.23521 69.88166</code></pre>
+<p>Novamente, o resultado nos mostra o valor médio previsto pelo modelo
+quando a renda é igual a 170, bem como o intervalo de confiança de 95%
+em torno deste valor.</p>
+<p>Também é interessante observar que a função <code>predict()</code>,
+quando não fornecemos o argumento <code>newdata</code>, nos dá como
+resultado todos os valores ajustados e os respectivos intervalos de
+confiança.</p>
+<ol start="2" style="list-style-type: lower-alpha">
+<li>Aqui, precisamos fazer o mesmo que no problema anterior, comn a
+diferença de que agora estamos fazendo uma previsão para o gasto médio
+com alimentação para um valor da variável preditora que está fora dos
+nossos dados. Isto é chamado de extrapolação:</li>
+</ol>
+<pre class="r"><code>modelo %&gt;%
+  predict(newdata = data.frame(renda = 1000), interval = &quot;confidence&quot;)</code></pre>
+<pre><code>##        fit     lwr      upr
+## 1 392.7468 375.146 410.3475</code></pre>
+<p>Para opinar se este valor parece razoável ou não, precisamos
+compará-lo com os demais valores ajustados:</p>
+<pre class="r"><code>predict(modelo, interval = &quot;confidence&quot;)</code></pre>
+<pre><code>##          fit        lwr       upr
+## 1   2.128975  0.4767152  3.781235
+## 2   2.912561  1.2859674  4.539155
+## 3   4.871527  3.3070035  6.436051
+## 4   8.789459  7.3388175 10.240100
+## 5  12.707391 11.3541168 14.060665
+## 6  20.543254 19.3199717 21.766537
+## 7  28.379118 27.1778917 29.580344
+## 8  40.132913 38.7579746 41.507851
+## 9  59.722572 57.7117067 61.733437
+## 10 79.312230 76.4916299 82.132831</code></pre>
+<p>Levando em consideração que o valor da variável preditora aqui é 5
+vezes o maior valor observado nos dados e, como a relação é linear, é
+razoável esperar que o gasto médio com alimentação para uma família com
+renda igual a 1000 esteja em torno de 400, já que o gasto médio previsto
+pelo modelo quando a renda é igual a 200 é cerca de 80.</p>
+<ol start="3" style="list-style-type: lower-alpha">
+<li>Apesar do resultado anterior parecer razoável do ponto de vista do
+modelo, sabemos que essa previsão não é realística, já que, na prática,
+o gasto com alimentação tende a se estabilizar após certo ponto, isto é,
+existe um limite em que o gasto com alimentação não cresce mais com o
+aumento da renda.</li>
 </ol>
 </div>
 <div id="problema-20" class="section level2">
 <h2>Problema 20</h2>
+<p>Feito direto no livro.</p>
+</div>
+<div id="problema-21" class="section level2">
+<h2>Problema 21</h2>
+<p>Conforme o modelo ajustado, considerando a interpretação do parâmetro
+<span class="math inline">\(\beta\)</span>, quando se aumenta os
+anúncios em uma unidade, em média, aumenta-se a quantidade de carros
+vendidos em 1,516.</p>
+</div>
+<div id="problema-22" class="section level2">
+<h2>Problema 22</h2>
+<p>Vamos primeiro passar os dados do problema para o R:</p>
+<pre class="r"><code>dados = data.frame(
+  X = c(0.5, 0.5, 1, 1, 1, 4, 4, 4, 4.5, 4.5, 4.5, 5, 5, 5, 5.5, 6, 6),
+  Y = c(163, 182, 978, 466, 549, 495, 723, 681, 619, 1049, 1033, 890, 1522, 1194, 987, 764, 1373)
+)</code></pre>
+<ol style="list-style-type: lower-alpha">
+<li>Agora, vamos fazer o ajuste do modelo utilizando regressão
+linear:</li>
+</ol>
+<pre class="r"><code>modelo = lm(formula = Y ~ X, dados)
+modelo</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = Y ~ X, data = dados)
+## 
+## Coefficients:
+## (Intercept)            X  
+##       323.6        131.7</code></pre>
+<p>Assim, o modelo ajustado é</p>
+<p><span class="math display">\[ \hat{y} = 323,6 + 131,7*x. \]</span>
+Vamos testar a hipótese nula de que <span class="math inline">\(\beta =
+0\)</span>, a qual, se não rejeitada, indicaria que a variável resposta
+não seria explicada de acordo com a relação linear dada com a variável
+preditora. Para fazer esse teste, vamos usar a estatística <span class="math inline">\(F\)</span> dada, a qual tem distribuição <span class="math inline">\(F(1, n-2)\)</span>. Para tanto, vamos calcular o
+p-valor, lembrando que esse é um teste unilateral à direita. Ou seja, a
+hipótese nula apenas será rejeitada para valores grandes da estatística
+<span class="math inline">\(F\)</span>, determinados de acordo com a
+significância do teste. Podemos obter a estatística <span class="math inline">\(F\)</span> e o p-valor associado a partir da
+tabela anova para o modelo:</p>
+<pre class="r"><code>tabela = anova(modelo)
+tabela</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["Df"],"name":[1],"type":["int"],"align":["right"]},{"label":["Sum Sq"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["Mean Sq"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["F value"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Pr(>F)"],"name":[5],"type":["dbl"],"align":["right"]}],"data":[{"1":"1","2":"1099635","3":"1099634.98","4":"13.68378","5":"0.002142775","_rn_":"X"},{"1":"15","2":"1205407","3":"80360.47","4":"NA","5":"NA","_rn_":"Residuals"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p>Como vemos, <span class="math inline">\(p &lt; 0,01\)</span>,
+indicando que devemos rejeitar a hipótese nula de que <span class="math inline">\(\beta = 0\)</span> e, portanto, concluímos que a
+relação obtida entre as duas variáveis não é mero acaso.</p>
+<ol start="2" style="list-style-type: lower-alpha">
+<li>Para responder a essa pergunta, vamos olhar para o valor de <span class="math inline">\(R^2\)</span> para o nosso modelo, o qual pode ser
+obtido da tabela ANOVA como sendo</li>
+</ol>
+<p><span class="math display">\[ R^2 = \dfrac{SQReg}{SQTot}
+\]</span></p>
+<pre class="r"><code>rsq = tabela$`Sum Sq`[1]/sum(tabela$`Sum Sq`)
+rsq</code></pre>
+<pre><code>## [1] 0.4770564</code></pre>
+<p>Ou seja, o modelo ajustado explica cerca de 48% da variabilidade da
+variável preditora. Como o valor dessa grandeza pode estar entre 0 e 1,
+sendo que a unidade indica a perfeição do modelo, concluímos que esse
+modelo aparentemente não é o mais apropriado, já que o valor obtido está
+mais perto de zero do que de 1.</p>
+<p>O valor de <span class="math inline">\(R^2\)</span> também pode ser
+obtido de maneira mais direta, por meio da função
+<code>summary()</code>:</p>
+<pre class="r"><code>summary(modelo)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = Y ~ X, data = dados)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -355.49 -207.48  -61.06  132.65  539.80 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)   
+## (Intercept)   323.62     146.94   2.202  0.04369 * 
+## X             131.72      35.61   3.699  0.00214 **
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 283.5 on 15 degrees of freedom
+## Multiple R-squared:  0.4771, Adjusted R-squared:  0.4422 
+## F-statistic: 13.68 on 1 and 15 DF,  p-value: 0.002143</code></pre>
+<ol start="3" style="list-style-type: lower-alpha">
+<li>Se queremos saber a previsão do custo médio de mantenção para
+tratores com 5 anos, de acordo com nosso modelo, podemos usar a função
+<code>predict()</code>:</li>
+</ol>
+<pre class="r"><code>modelo %&gt;%
+  predict(newdata = data.frame(X = 5), interval = &quot;confidence&quot;, level = 0.90)</code></pre>
+<pre><code>##        fit      lwr      upr
+## 1 982.2046 835.0334 1129.376</code></pre>
+<p>O resultado já contêm o intervalo de confiança de 90% pedido.</p>
+<ol start="4" style="list-style-type: lower-alpha">
+<li>Para responder a essa pergunta, não podemos recorrer a estatística
+<span class="math inline">\(F\)</span> que resulta da tabela ANOVA, já
+que aquela apenas serve para testar a hipótese nula <span class="math inline">\(H_0: \beta_1 = 0\)</span> contra a alternativa
+<span class="math inline">\(H_1: \beta_1 &gt; 0\)</span>. Devemos, ao
+invés disso, calcular o valor da estatística <span class="math inline">\(t(\hat{\alpha})\)</span> observada e então obter o
+p-valor associado.</li>
+</ol>
+<p><span class="math display">\[ H_0: \beta_0 = 300 \]</span></p>
+<p><span class="math display">\[ H_1: \beta_0 &gt; 300 \]</span> Vamos
+usar a expressão dada na página 478:</p>
+<p><span class="math display">\[ t({\hat{\alpha}}) = \dfrac{\hat{\alpha}
+- \alpha}{S_e}\sqrt{\dfrac{n\sum(x_i - \bar{x})^2}{\sum x_i^2}}
+\]</span></p>
+<p>Lembrando que a estimativa do desvio padrão dos resíduos é igual a
+média dos quadrados do resíduo, e essa informação está na nossa tabela
+ANOVA já obtida. Além disso, o estimador <span class="math inline">\(\hat{\alpha}\)</span> pode ser obtido diretamente
+do modelo ajustado:</p>
+<pre class="r"><code>n = nrow(dados)
+S_e = sqrt(tabela$`Mean Sq`[2]) #estimativa do desvio padrão dos resíduos
+alpha_hat = as.double(modelo$coefficients[1]) #parâmetro alpha estimado
+t_alpha = ((alpha_hat - 300)/S_e)*sqrt(n*sum((dados$X - mean(dados$X))^2)/sum(dados$X^2))</code></pre>
+<p>Agora que já temos a estatística do teste em mãos, precisamos apenas
+lembrar que ela tem distribuição t de Student com <span class="math inline">\(n-2\)</span> graus de liberdade para então
+calcular o p-valor. Além disso, como o teste é unilateral à direita,
+precisamos fornecer o argumento <code>lower.tail = FALSE</code>:</p>
+<pre class="r"><code>pt(t_alpha, df = n-2, lower.tail = F)</code></pre>
+<pre><code>## [1] 0.4372128</code></pre>
+<p>Como o valor p calculado é maior que a significância do teste, que é
+de 0,05, não podemos rejeitar a hipótese nula de que <span class="math inline">\(\beta_0 = 300\)</span>.</p>
+<p>O resultado faz sentido, já que o valor estimado para este parâmetro
+foi igual a 323,62 e, devido à variabilidade do estimador, não temos
+poder estatístico para rejeitar a hipótese nula.</p>
+</div>
+<div id="problema-23" class="section level2">
+<h2>Problema 23</h2>
+<p>Primeiro, vamos carregar os dados para o R:</p>
+<pre class="r"><code>dados = data.frame(
+  pais = 15:21,
+  filhos = c(15.4, 15.7, 16, 16.3, 16.6, 17, 17.3)
+)</code></pre>
+<p>Agora, vamos obter as estimativas dos parâmetros da reta de regressão
+linear:</p>
+<pre class="r"><code>modelo = lm(formula = filhos ~ pais, dados)
+modelo</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = filhos ~ pais, data = dados)
+## 
+## Coefficients:
+## (Intercept)         pais  
+##     10.6071       0.3179</code></pre>
+<p>Logo, a reta de regressão linear ajustada tem a forma</p>
+<p><span class="math display">\[ \hat{y} = 10,61 + 0,32*x \]</span></p>
+<p>De acordo com o modelo estimado, a cada alteração de 1 centésimo de
+polegada no diâmetro médio das ervilhas-pais, aumenta-se 0,32 centésimo
+de polegada no diâmetro das ervilhas-filhas. Além disso, o diâmetro
+médio mínimo estimado para as ervilhas-filhas é de cerca de 10,61
+centésimos de polegada.</p>
+</div>
+<div id="problema-24" class="section level2">
+<h2>Problema 24</h2>
+<p>O pesquisador poderia obter várias amostras de medidas feitas pelo
+instrumento para concentrações conhecidas do ácido no sangue. Assim, se
+o instrumento estiver calibrado, a relação entre a concentração medida
+(variável dependente, <span class="math inline">\(Y\)</span>) e a
+concentração real (variável independente, <span class="math inline">\(x\)</span>) deveria ser uma linha reta com <span class="math inline">\(\beta \approx 1\)</span> e <span class="math inline">\(\alpha \approx 0\)</span>.</p>
+<p>Assim, as hipóteses a serem adotadas sobre os parâmetros do
+respectivo modelo de regressão linear seriam:</p>
+<p>Para o parâmetro <span class="math inline">\(\alpha\)</span>:</p>
+<p><span class="math display">\[ H_0: \alpha = 0 \]</span> <span class="math display">\[ H_1: \alpha \neq 0 \]</span> Para o parâmetro
+<span class="math inline">\(\beta\)</span>:</p>
+<p><span class="math display">\[ H_0: \beta = 1 \]</span></p>
+<p><span class="math display">\[ H_1: \beta \neq 1, \]</span></p>
+<p>dados o modelo com a forma matemática</p>
+<p><span class="math display">\[ \hat{y} = \hat{\alpha} + \hat{\beta}*x.
+\]</span></p>
+</div>
+<div id="problema-25" class="section level2">
+<h2>Problema 25</h2>
+<p>Primeiramente, vamos carregar os dados:</p>
+<pre class="r"><code>dados = data.frame(
+  X = c(rep(1, 4), rep(3, 5), rep(5, 3), rep(10, 4), rep(15, 4)),
+  Y = c(1.1, 0.7, 1.8, 0.4, 
+        3, 1.4, 4.9, 4.4, 4.5,
+        7.3, 8.2, 6.2,
+        12, 13.1, 12.6, 13.2,
+        18.7, 19.7, 17.4, 17.1)
+)</code></pre>
+<p>Agora, vamos ajustar os parâmetros do modelo:</p>
+<pre class="r"><code>modelo = lm(formula = Y ~ X, dados)
+modelo</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = Y ~ X, data = dados)
+## 
+## Coefficients:
+## (Intercept)            X  
+##      0.1595       1.2277</code></pre>
+<p>Logo, o modelo ajustado tem a forma:</p>
+<p><span class="math display">\[ \hat{y} = 0,16 + 1,23*x. \]</span></p>
+<p>Finalmente, vamos testar as hipóteses pedidas. Para isso, temos que
+calcular a estatística <span class="math inline">\(t(\hat{\beta})\)</span> observada para a amostra
+e, a partir disso, calcular o p-valor:</p>
+<pre class="r"><code>tabela = anova(modelo)
+n = nrow(dados)
+S_e = sqrt(tabela$`Mean Sq`[2]) #estimativa do desvio padrão dos resíduos
+beta_hat = as.double(modelo$coefficients[2]) #parâmetro beta estimado
+t_beta = ((beta_hat - 1)/S_e)*sqrt(sum((dados$X - mean(dados$X))^2))</code></pre>
+<p>E então, calculamos o p-valor, lembrando que estamos interessados
+apenas no teste unicaudal:</p>
+<pre class="r"><code>pt(t_beta, df = n-2, lower.tail = F)</code></pre>
+<pre><code>## [1] 6.545863e-05</code></pre>
+<p>Logo, como <span class="math inline">\(p &lt; 0,01\)</span>,
+decidimos por rejeitar a hipótese nula de que <span class="math inline">\(\beta_1 = 1\)</span> e, portanto, concluímos que o
+instrumento não está calibrado, já que, para isso, o valor de <span class="math inline">\(\beta\)</span> deveria ser próximo de 1 e o
+resultado significativo.</p>
+</div>
+<div id="problema-26" class="section level2">
+<h2>Problema 26</h2>
+<ol style="list-style-type: lower-alpha">
+<li><p>Esse modelo seria adequado apenas para uma faixa de precipitação.
+A partir de certo valor de precipitação, a produção de trigo seria
+prejudicada pelo excesso de água.</p></li>
+<li><p>Uma relação matemática mais adequada provavelmente seria algo com
+um termo senoidal, conforme mostrada abaixo:</p></li>
+</ol>
+<pre class="r"><code>x = seq(0, pi, by = 0.1)
+y = sin(x)
+plot(x, y, pch = 16)</code></pre>
+<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABUAAAAPACAMAAADDuCPrAAAAvVBMVEUAAAAAADoAAGYAOjoAOmYAOpAAZrY6AAA6OgA6Ojo6OmY6ZmY6ZpA6ZrY6kLY6kNtmAABmOgBmOjpmZjpmZmZmZpBmkLZmkNtmtttmtv+QOgCQOjqQZjqQZmaQkLaQtraQttuQtv+Q2/+2ZgC2Zjq2kDq2kGa2tpC2tra2ttu227a229u22/+2///bkDrbkGbbtmbbtpDbtrbb25Db27bb29vb2//b////tmb/25D/27b/29v//7b//9v///9quCDJAAAACXBIWXMAAB2HAAAdhwGP5fFlAAAgAElEQVR4nO3dfWPTVtrgYZmhpMwwW+hkmMIy227Toe5CM6UPKSHF/v4fa6UkBMd2HOu2bJ1buq4/CnlTTo/tH5L1Vs0BCKn6HgBAVgIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBZQe0AuhM94nqfIkd6nu2gWHpvFFdL3DZ7Oz3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bd/dg5xd33bwj97GtuiOgBY0k/M7B1nITC7ekW1NQMuYynsGWchUNq5GUvjL+7OUAQUogYACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECSiZnVfVg1+bv8xeVtWjvkfD6Agomd1086akcEACSmofj6rJj/P5p6dV9aLvsTA+AkpuJ1X11Yfr/8KBCSi5Xa571hvwzXooHJiAklwdz78cVdU3fY+DMRJQkmv2I9mApx8CSnYfj2zA0xMBJbtmFdQhTPRCQMnutNmE9xYofRBQkvv0tJoc2YanFwJKcif16uep8zjphYCS23mzB96JSPRDQEmt2YP0wqnw9ERASe306hDQpqP2I3FwAkpmHz/vPnIyJ30QUDI7udl7dGI/EocnoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABB/x8jTZM6ecHCLgAAAABJRU5ErkJggg==" width="672" /></p>
+</div>
+<div id="problema-27" class="section level2">
+<h2>Problema 27</h2>
+<p>Vamos primeiro obter os dados:</p>
+<pre class="r"><code>dados = data.frame(
+  Y = c(17, 21, 49, 54, 64, 48, 34, 63, 62, 72, 61, 91),
+  log_X = c(rep(0.36, 4), rep(0.56, 4), rep(0.76, 4))
+)</code></pre>
+<p>Agora, vamos obter os estimadores dos parâmetros ajustados ao modelo
+linear:</p>
+<pre class="r"><code>modelo = lm(formula = Y ~ log_X, dados)
+modelo</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = Y ~ log_X, data = dados)
+## 
+## Coefficients:
+## (Intercept)        log_X  
+##        2.25        90.62</code></pre>
+<p>Logo, nosso modelo tem a forma</p>
+<p><span class="math display">\[ \hat{y} = 2,25 + 90,62*\log{x}.
+\]</span></p>
+<p>Vamos obter também a tabela ANOVA para o nosso modelo:</p>
+<pre class="r"><code>tabela = anova(modelo)
+tabela</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["Df"],"name":[1],"type":["int"],"align":["right"]},{"label":["Sum Sq"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["Mean Sq"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["F value"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Pr(>F)"],"name":[5],"type":["dbl"],"align":["right"]}],"data":[{"1":"1","2":"2628.125","3":"2628.1250","4":"11.59872","5":"0.006706662","_rn_":"log_X"},{"1":"10","2":"2265.875","3":"226.5875","4":"NA","5":"NA","_rn_":"Residuals"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p>Olhando para a tabela, de cara já rejeitamos a hipóteses <span class="math inline">\(H_0: \beta_1 = 0\)</span>, já que o p-valor
+associada à estatística F obtida é menor que 0,01. Portando, concluímos
+que o logaritmo da dose de insulina aplicada ajuda a prever a queda nos
+níveis de açucar no sangue. Podemos também observar a saída da função
+<code>summary()</code> aplicada ao modelo:</p>
+<pre class="r"><code>summary(modelo)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = Y ~ log_X, data = dados)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -19.000 -11.062  -2.062  11.781  19.875 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)   
+## (Intercept)     2.25      15.52   0.145  0.88763   
+## log_X          90.62      26.61   3.406  0.00671 **
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 15.05 on 10 degrees of freedom
+## Multiple R-squared:  0.537,  Adjusted R-squared:  0.4907 
+## F-statistic:  11.6 on 1 and 10 DF,  p-value: 0.006707</code></pre>
+<p>Aqui, vemos novamente o valor p associado à estatística F e o <span class="math inline">\(R^2\)</span>, que indica que cerca de 54% da
+variação na queda dos níveis de açucar no sangue é explicado pela
+log-dose de insulina.</p>
+</div>
+<div id="problema-28" class="section level2">
+<h2>Problema 28</h2>
+</div>
+<div id="problema-29" class="section level2">
+<h2>Problema 29</h2>
+</div>
+<div id="problema-30" class="section level2">
+<h2>Problema 30</h2>
+</div>
+<div id="problema-31" class="section level2">
+<h2>Problema 31</h2>
+</div>
+<div id="problema-32" class="section level2">
+<h2>Problema 32</h2>
+</div>
+<div id="problema-33" class="section level2">
+<h2>Problema 33</h2>
+</div>
+<div id="problema-34" class="section level2">
+<h2>Problema 34</h2>
+</div>
+<div id="problema-35" class="section level2">
+<h2>Problema 35</h2>
 </div>
 </div>
 <div class="footnotes footnotes-end-of-document">
