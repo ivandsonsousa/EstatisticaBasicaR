@@ -73,6 +73,7 @@ library(dplyr)
 library(ggplot2)
 library(readxl)
 library(combinat)
+library(DescTools)
 ```
 
 
@@ -92,8 +93,8 @@ dados = dados %>%
 Agora, fazemos o teste propriamente dito, através da obtenção da tabela ANOVA:
 
 ```{r}
-result = anova(aov(Y ~ W, data = dados))
-result
+anova_1 = aov(Y ~ W, data = dados)
+result = anova(anova_1)
 ```
 
 Vamos agora calcular o coeficiente de explicação para o modelo, que é dado
@@ -199,8 +200,8 @@ Para responder a este problema, precisamos fazer um teste anova, a fim de descob
 
 
 ```{r}
-result = anova(aov(y ~ x, dados))
-result
+anova_4 = aov(y ~ x, dados)
+result = anova(anova_4)
 
 rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
 
@@ -238,8 +239,8 @@ Note que, na coluna turno, substituímos manhã (M) e tarde (T) por D (diurno).
 Agora, vamos fazer o teste estatístico:
 
 ```{r}
-result = anova(aov(desempenho ~ turno, dados))
-result
+anova_5 = aov(desempenho ~ turno, dados)
+result = anova(anova_5)
 
 rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
 
@@ -344,8 +345,8 @@ dados = dados %>%
 Vamos fazer o teste propriamente dito:
 
 ```{r}
-result = anova(aov(peso_perdido ~ regime, dados))
-result
+anova_7 = aov(peso_perdido ~ regime, dados)
+result = anova(anova_7)
 
 rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
 
@@ -368,8 +369,8 @@ dados = read_excel("exemplo-15.1.xlsx")
 dados = dados %>%
   mutate(X = as.factor(X))
 
-result = anova(aov(Y ~ X, dados))
-result
+anova_15.1_idade = aov(Y ~ X, dados)
+result = anova(anova_15.1_idade)
 
 rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
 
@@ -413,8 +414,8 @@ Vamos lembrar de que a coluna `y` representa a nota obtida pelo aluno na primeir
 
 
 ```{r}
-result = anova(aov(y ~ z, dados))
-result
+anova_8 = aov(y ~ z, dados)
+result = anova(anova_8)
 
 rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
 
@@ -492,7 +493,7 @@ cat(
 
 (a) De acordo com o resultado do teste, continuamos a rejeitar a hipótese nula de que o grau de escolaridade não influencia nos rendimentos médios dos indivíduos analisados. Ao inserir o nível superior para o grau de instrução, vemos que o resultado indica uma maior evidência para a influência do grau da escoladidade sobre a renda média dos indivíduos, já que cerca de `r scales::percent(rsq)` da variação dos dados é agora explicada pelo grau de escolaridade e o p-valor do teste foi essencialmente igual a zero.
 
-(b) Conforme já calculado acima, o estimador da média para o grupo com formação universitária é igual a `r xbar_S`, enquanto para os níveis fundamental e médio esses valores são iguais a `r xbar_F` e `r xbar_M`, respectivamente. Podemos determinar um intervalo de confiança para a média do grupo com nível superior (lembrando que $S_e^2 = QMDen$):
+(b) Conforme já calculado acima, a estimativa da média para o grupo com formação universitária é igual a `r xbar_S`, enquanto para os níveis fundamental e médio esses valores são iguais a `r xbar_F` e `r xbar_M`, respectivamente. Podemos determinar um intervalo de confiança para a média do grupo com nível superior (lembrando que $S_e^2 = QMDen$):
 
 
 ```{r}
@@ -548,8 +549,8 @@ dados = data.frame(
 Agora, vamos fazer o teste ANOVA propriamente dito:
 
 ```{r}
-result = anova(aov(notas ~ marca, dados))
-result
+anova_10 = aov(notas ~ marca, dados)
+result = anova(anova_10)
 
 rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
 
@@ -576,8 +577,8 @@ Agora, vamos fazer o teste estatístico propriamente dito:
 
 
 ```{r}
-result = anova(aov(q_agua ~ tipo_laje, dados))
-result
+anova_11 = aov(q_agua ~ tipo_laje, dados)
+result = anova(anova_11)
 
 rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
 
@@ -616,7 +617,7 @@ e o quantil da t-Student para o cálculo do intervalo de confiança de 95%, cons
 ```{r}
 I = length(levels(dados$tipo_laje))#número de grupos
 n = nrow(dados)
-qb = qt(1 - (1/m)*0.05/2, df = n - I)
+qb = qt(1 - (1/m)*0.05/2, df = n - I) #quantil com correção
 ```
 
 Agora, estamos em condições de determinar os intervalos de confiança para as diferenças de médias. 
@@ -650,6 +651,14 @@ Com o resultado dado acima, concluímos que:
 
 * $\mu_3 = \mu_4$
 
+Poderíamos também fazer todas essas comparações entre pares de médias por meio da função `PostHocTest`, o que pouparia muito trabalho:
+
+
+```{r}
+PostHocTest(anova_11, method = "bonferroni", conf.level = 0.95)
+```
+Como podemos ver, essa função já fornece diretamente as diferenças entre os pares de médias, os intervalos de confiança para essas diferenças e o p-valor associado a cada teste de igualdade entre os pares de médias.
+
 
 ## Problema 12
 
@@ -665,8 +674,8 @@ Esse problema é um pouco confuso, pois fala que os dados se referem a absorçã
 Vamos fazer o teste ANOVA:
 
 ```{r}
-result = anova(aov(q_absorvida ~ processo, dados))
-result
+anova_12 = aov(q_absorvida ~ processo, dados)
+result = anova(anova_12)
 
 rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
 
@@ -751,6 +760,14 @@ Logo, concluímos que
 * $\mu_B = \mu_C$
 
 
+Novamente, poderíamos poupar muito trabalho fazendo as comparações a partir da função `PostHocTest()`:
+
+
+```{r}
+PostHocTest(anova_12, method = "bonferroni", conf.level = 0.95)
+```
+
+
 ## Problema 13
 
 Primeiro, vamos fazer a entrada dos dados, que estão em formato excel:
@@ -764,8 +781,8 @@ dados = mutate(dados, metodo = as.factor(metodo))
 Agora, fazemos o teste:
 
 ```{r}
-result = anova(aov(nota ~ metodo, dados))
-result
+anova_13 = aov(nota ~ metodo, dados)
+result = anova(anova_13)
 
 rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
 
@@ -777,8 +794,7 @@ cat(
 
 Conforme os resultados mostrados acima, vemos que podemos rejeitar a hipótese de que os 3 métodos são equivalentes, já que p < 0.01. Porém, o coeficiente de explicação do modelo ainda é baixo, em torno de 37%.
 
-Como rejeitamos hipótese de igualdade das 3 médias, podemos determinar os intervalos de confiança 2 a 2 para as diferenças entre médias. Nesse caso, teremos 3 combinações possíveis. Vamos começar calculando as médias de cada grupo:
-
+Como rejeitamos hipótese de igualdade das 3 médias, podemos determinar os intervalos de confiança 2 a 2 para as diferenças entre médias. Vamos primeiro ver os valores das médias de cada grupo:
 
 ```{r}
 grupos = dados %>%
@@ -788,38 +804,13 @@ grupos = dados %>%
 grupos
 ```
 
-
-Agora, vamos calcular as grandezas necessárias para a a construção dos IC's. Vamos também calcular o quantil para o intervalo de confiança de 95%, considerando o fator de correção de Bonferroni:
-
-
-```{r}
-n = nrow(dados)
-I = length(levels(dados$metodo)) #número de grupos
-m = 3 #número de comparações
-qb = qt(1-(1/m)*0.05/2, df = n - I) #quantil
-se = sqrt(result$`Mean Sq`[2])
-```
-
-
-Como todos os grupos possuem o mesmo tamanho ($n=8$), o erro padrão para o estimador da diferença entre médias será:
-
-```{r}
-ep = se*sqrt(1/8 + 1/8)
-```
-
-Finalmente, vamos determinar os IC's
+Desta vez, vamos determinar os IC's diretamente pela função `PostHocTest()`:
 
 
 ```{r}
-cat(
-  "IC(mu1 - mu2; 95%) =",
-  grupos$xbar[1] - grupos$xbar[2] + c(-1,1)*qb*ep,
-  "\nIC(mu1 - mu3; 95%) =",
-  grupos$xbar[1] - grupos$xbar[3] + c(-1,1)*qb*ep,
-  "\nIC(mu2 - mu3; 95%) =",
-  grupos$xbar[2] - grupos$xbar[3] + c(-1,1)*qb*ep
-)
+PostHocTest(anova_13, method = "bonferroni", conf.level = 0.95)
 ```
+
 
 Portanto, concluímos que $\mu_1 = \mu_2 < \mu_3$.
 
@@ -842,8 +833,8 @@ Teste:
 
 
 ```{r}
-result = anova(aov(vendas ~ embalagem, dados))
-result
+anova_14 = aov(vendas ~ embalagem, dados)
+result = anova(anova_14)
 
 rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
 cat(
@@ -854,48 +845,24 @@ cat(
 
 Como vemos, o modelo explica cerca de 49% da variância dos dados. O resultado está no limiar da significância de 5%. Assim, rejeitamos a hipótese de igualdade das 3 médias.
 
-Vamos agora construir os intervalos de confiança 2 a 2 para a diferença de médias. Novamente, temos 3 grupos, de modo que existêm 3 comparações possíveis. Vamos iniciar calculando as médias dentro de cada grupo:
+
+Para comparar as médias dos grupos, vamos primeiro visualizá-las:
 
 
 ```{r}
 grupos = dados %>%
   group_by(embalagem) %>%
   summarise(n = n(), xbar = mean(vendas))
+
 grupos
 ```
 
-Agora, vamos calcular as grandezas necessárias para a construção dos IC's:
+Vamos agora construir os intervalos de confiança 2 a 2 para a diferença de médias. Novamente, temos 3 grupos, de modo que existêm 3 comparações possíveis. Vamos aplicar a função `PostHocTest()` à nossa anova:
 
 
 ```{r}
-n = nrow(dados) #quantidade total de elementos
-m = 3 #Número de comparações
-I = length(levels(dados$embalagem))
-qb = qt(1-(1/m)*0.05/2, df = n - I) #quantil
-se = sqrt(result$`Mean Sq`[2])
+PostHocTest(anova_14, method = "bonf", conf.level = 0.95)
 ```
-
-
-Como todos os grupos possuem o mesmo tamanho ($n=4$), o erro padrão para o estimador da diferença entre médias será sempre igual a:
-
-```{r}
-ep = se*sqrt(1/4 + 1/4)
-```
-
-Finalmente, vamos determinar os IC's:
-
-
-```{r}
-cat(
-  "IC(muA - muB; 95%) =",
-  grupos$xbar[1] - grupos$xbar[2] + c(-1,1)*qb*ep,
-  "\nIC(muA - muC; 95%) =",
-  grupos$xbar[1] - grupos$xbar[3] + c(-1,1)*qb*ep,
-  "\nIC(muB - muC; 95%) =",
-  grupos$xbar[2] - grupos$xbar[3] + c(-1,1)*qb*ep
-)
-```
-
 
 Como vemos nos resultados acima, não é possível rejeitar as hipóteses de igualdade das médias 2 a 2 no nível de confianã de 5%. Parte disso resulta do fato de que o p-valor do teste ANOVA feito ficou no limiar dos 5%. Assim, no nível de 5%, o teste é inconclusivo.
 
@@ -915,8 +882,8 @@ Aqui, podemos testar se as médias das notas atribuídas para as diferentes rece
 
 
 ```{r}
-result = anova(aov(nota ~ receita, dados))
-result
+anova_15 = aov(nota ~ receita, dados)
+result = anova(anova_15)
 
 rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
 cat(
@@ -965,6 +932,7 @@ Por fim, lembrando que temos $n-1$ graus de liberdade associados à soma de quad
 
 
 ```{r}
+I = 3 #número de grupos
 QMDen = SQDen/(nH + nE + nB - I)
 QMEnt = SQEnt/(I - 1)
 
@@ -1036,8 +1004,8 @@ Agora, vamos fazer o teste ANOVA, a fim de verificar se há evidências de que o
 
 
 ```{r}
-result = anova(aov(numero_vezes ~ livro, dados))
-result
+anova_17 = aov(numero_vezes ~ livro, dados)
+result = anova(anova_17)
 
 rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
 cat(
@@ -1048,68 +1016,21 @@ cat(
 
 Vemos então que o modelo é responsável por cerca de 47% da variância dos dados. Além disso, esse resultado é significativo, já que o p-valor do teste resultou ser menor que 1%.
 
-Como rejeitamos a hipótese de igualdade das 4 médias, podemos agora analisar a igualdade duas a duas. Para isso, vamos primeiro calcular e enumerar as comparações possíveis:
-
-
-```{r}
-config = combn(1:4, 2) #comparações possíveis
-config
-m = ncol(config) #número de comparações possíveis
-```
-
-Ou seja, podemos fazer 6 comparações. Vamos primeiro calcular a média de cada grupo:
+Como rejeitamos a hipótese de igualdade das 4 médias, podemos agora analisar a igualdade dos pares de médias por meio da função `PostHocTest()`. Mas antes, vamos olhar as médias por grupo:
 
 
 ```{r}
 grupos = dados %>%
   group_by(livro) %>%
   summarise(n = n(), xbar = mean(numero_vezes))
+
 grupos
 ```
 
-Agora, vamos calcular o desvio padrão dos resíduos e o erro padrão para cada comparação:
-
 
 ```{r}
-n1 = grupos$n[1]
-n2 = grupos$n[2]
-n3 = grupos$n[3]
-n4 = grupos$n[4]
-I = length(levels(dados$livro)) #número de grupos
-#Devio padrão dos resíduos
-se = sqrt(result$`Mean Sq`[2])
-#Erro padrão para as diferenças entre médias
-ep12 = se*sqrt(1/n1 + 1/n2)
-ep13 = se*sqrt(1/n1 + 1/n3)
-ep14 = se*sqrt(1/n1 + 1/n4)
-ep23 = se*sqrt(1/n2 + 1/n3)
-ep24 = se*sqrt(1/n2 + 1/n4)
-ep34 = se*sqrt(1/n3 + 1/n4)
-
-#Quantil corrigido para o IC(95%)
-qb = qt(1-(1/m)*0.05/2, df = nrow(dados) - I)
+PostHocTest(anova_17, method = "bonf", conf.level = 0.95)
 ```
-
-Finalmente, vamos determinar os IC's dois a dois:
-
-
-```{r}
-cat(
-  "IC(mu_1 - mu_2; 95%) =",
-  grupos$xbar[1] - grupos$xbar[2] + c(-1,1)*qb*ep12,
-  "\nIC(mu_1 - mu_3; 95%) =",
-  grupos$xbar[1] - grupos$xbar[3] + c(-1,1)*qb*ep13,
-  "\nIC(mu_1 - mu_4; 95%) =",
-  grupos$xbar[1] - grupos$xbar[4] + c(-1,1)*qb*ep14,
-  "\nIC(mu_2 - mu_3; 95%) =",
-  grupos$xbar[2] - grupos$xbar[3] + c(-1,1)*qb*ep23,
-  "\nIC(mu_2 - mu_4; 95%) =",
-  grupos$xbar[2] - grupos$xbar[4] + c(-1,1)*qb*ep24,
-  "\nIC(mu_3 - mu_4; 95%) =",
-  grupos$xbar[3] - grupos$xbar[4] + c(-1,1)*qb*ep34
-)
-```
-
 
 Assim, concluímos que:
 
@@ -1146,8 +1067,8 @@ Já analisamos esse caso no problema 5. Porém, naquela situação, consideramos
 Agora, vamos fazer o teste estatístico:
 
 ```{r}
-result = anova(aov(desempenho ~ turno, dados))
-result
+anova_19 = aov(desempenho ~ turno, dados)
+result = anova(anova_19)
 
 rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
 
@@ -1172,46 +1093,18 @@ grupos = dados %>%
 grupos
 ```
 
-Agora, vamos calcular o desvio padrão dos resíduos, $S_e^2$, bem como o erro padrão para cada comparação. Devemos notar também que o tamanho dos grupos são diferentes, conforme mostrado acima.
+Agora, vamos fazer as comparações propriamente ditas, por meio da função `PostHocTest()`:
 
 
 ```{r}
-#Tamanhos dos grupos
-n1 = grupos$n[1] #Tamanho do grupo matinal
-n2 = grupos$n[2] #Tamanho do grupo noturno
-n3 = grupos$n[3] #Tamanho do grupo da tarde
-n = nrow(dados)
-I = length(levels(dados$turno))
-m = 3 #Número de comparações
-
-#Desvio padrão dos resíduos
-se = sqrt(result$`Mean Sq`[2])
-
-#Erro padrão para as comparações entre médias:
-ep12 = se*sqrt(1/n1 + 1/n2)
-ep13 = se*sqrt(1/n1 + 1/n3)
-ep23 = se*sqrt(1/n2 + 1/n3)
-
-#Quantil para o IC(95%), corrigido pelo fator de Bolfarrini:
-qb = qt(1-(1/m)*0.05/2, df = n - I)
+PostHocTest(anova_19, method = "bonf")
 ```
 
-E agora, os IC's
-
-```{r}
-cat(
-  "IC(mu_M - mu_T; 95%) =",
-  grupos$xbar[1] - grupos$xbar[3] + c(-1,1)*qb*ep13,
-  "\nIC(mu_M - mu_N; 95%) =",
-  grupos$xbar[1] - grupos$xbar[2] + c(-1,1)*qb*ep12,
-  "\nIC(mu_T - mu_N; 95%) =",
-  grupos$xbar[3] - grupos$xbar[2] + c(-1,1)*qb*ep23
-)
-```
 
 Portanto, concluímos que:
 
 $$ \mu_M = \mu_N > \mu_T $$
+
 
 ### Exemplo 15.3
 
@@ -1228,8 +1121,8 @@ Aqui, queremos verificar se o tipo de regime tem influência sobre a perda de pe
 Vamos fazer o teste propriamente dito:
 
 ```{r}
-result = anova(aov(peso_perdido ~ regime, dados))
-result
+anova_20 = aov(peso_perdido ~ regime, dados)
+result = anova(anova_20)
 
 rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
 
@@ -1269,36 +1162,13 @@ grupos = dados %>%
 grupos
 ```
 
-Agora, vamos calcular o desvio padrão dos resíduos, $S_e^2$, bem como o erro padrão para cada comparação. Como os tamanhos dos grupos são todos iguais, o erro padrão para comparação entre médias será sempre o mesmo.
+Agora, vamos comparar os pares de médias:
+
 
 ```{r}
-#Tamanhos dos grupos
-n = nrow(dados)
-I = length(levels(dados$regime))
-m = 3 #Número de comparações
-
-#Desvio padrão dos resíduos
-se = sqrt(result$`Mean Sq`[2])
-
-#Erro padrão para as comparações entre médias:
-ep = se*sqrt(1/6 + 1/6)
-
-#Quantil para o IC(95%), corrigido pelo fator de Bolfarrini:
-qb = qt(1-(1/m)*0.05/2, df = n - I)
+PostHocTest(anova_20, method = "bonf")
 ```
 
-E agora, os IC's
-
-```{r}
-cat(
-  "IC(mu_1 - mu_2; 95%) =",
-  grupos$xbar[1] - grupos$xbar[2] + c(-1,1)*qb*ep,
-  "\nIC(mu_1 - mu_3; 95%) =",
-  grupos$xbar[1] - grupos$xbar[3] + c(-1,1)*qb*ep,
-  "\nIC(mu_2 - mu_3; 95%) =",
-  grupos$xbar[2] - grupos$xbar[3] + c(-1,1)*qb*ep
-)
-```
 
 Assim, concluímos que:
 

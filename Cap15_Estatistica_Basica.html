@@ -2833,7 +2833,8 @@ de obter a tabela ANOVA.</p>
 <pre class="r"><code>library(dplyr)
 library(ggplot2)
 library(readxl)
-library(combinat)</code></pre>
+library(combinat)
+library(DescTools)</code></pre>
 </div>
 <div id="exemplos-e-problemas-do-livro" class="section level1">
 <h1>Exemplos e problemas do livro</h1>
@@ -2847,13 +2848,8 @@ dados = dados %&gt;%
   mutate(W = as.factor(W))</code></pre>
 <p>Agora, fazemos o teste propriamente dito, através da obtenção da
 tabela ANOVA:</p>
-<pre class="r"><code>result = anova(aov(Y ~ W, data = dados))
-result</code></pre>
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["Df"],"name":[1],"type":["int"],"align":["right"]},{"label":["Sum Sq"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["Mean Sq"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["F value"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Pr(>F)"],"name":[5],"type":["dbl"],"align":["right"]}],"data":[{"1":"1","2":"135.2","3":"135.20000","4":"1.966069","5":"0.1778761","_rn_":"W"},{"1":"18","2":"1237.8","3":"68.76667","4":"NA","5":"NA","_rn_":"Residuals"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
+<pre class="r"><code>anova_1 = aov(Y ~ W, data = dados)
+result = anova(anova_1)</code></pre>
 <p>Vamos agora calcular o coeficiente de explicação para o modelo, que é
 dado pelo quociente entre a soma dos quadrados entre grupos e a soma dos
 quadrados totais:</p>
@@ -2951,14 +2947,10 @@ que esse modelo não parece apropriado.</p>
 <p>Para responder a este problema, precisamos fazer um teste anova, a
 fim de descobrir se o conhecimento do fator tipo de escola influencia na
 nota Y:</p>
-<pre class="r"><code>result = anova(aov(y ~ x, dados))
-result</code></pre>
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["Df"],"name":[1],"type":["int"],"align":["right"]},{"label":["Sum Sq"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["Mean Sq"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["F value"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Pr(>F)"],"name":[5],"type":["dbl"],"align":["right"]}],"data":[{"1":"1","2":"354.381","3":"354.3810","4":"2.196917","5":"0.1546834","_rn_":"x"},{"1":"19","2":"3064.857","3":"161.3083","4":"NA","5":"NA","_rn_":"Residuals"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
-<pre class="r"><code>rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
+<pre class="r"><code>anova_4 = aov(y ~ x, dados)
+result = anova(anova_4)
+
+rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
 
 cat(
   &quot;Coeficiente R2 do modelo:&quot;,
@@ -2991,14 +2983,10 @@ dados = mutate(dados, turno = as.factor(turno))</code></pre>
 <p>Note que, na coluna turno, substituímos manhã (M) e tarde (T) por D
 (diurno).</p>
 <p>Agora, vamos fazer o teste estatístico:</p>
-<pre class="r"><code>result = anova(aov(desempenho ~ turno, dados))
-result</code></pre>
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["Df"],"name":[1],"type":["int"],"align":["right"]},{"label":["Sum Sq"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["Mean Sq"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["F value"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Pr(>F)"],"name":[5],"type":["dbl"],"align":["right"]}],"data":[{"1":"1","2":"3.238466","3":"3.2384661","4":"6.183348","5":"0.02236115","_rn_":"turno"},{"1":"19","2":"9.951058","3":"0.5237399","4":"NA","5":"NA","_rn_":"Residuals"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
-<pre class="r"><code>rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
+<pre class="r"><code>anova_5 = aov(desempenho ~ turno, dados)
+result = anova(anova_5)
+
+rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
 
 cat(
   &quot;Coeficiente R2 do modelo:&quot;,
@@ -3089,14 +3077,10 @@ os níveis 1 e 2:</p>
 <pre class="r"><code>dados = dados %&gt;%
   filter(regime != 3)</code></pre>
 <p>Vamos fazer o teste propriamente dito:</p>
-<pre class="r"><code>result = anova(aov(peso_perdido ~ regime, dados))
-result</code></pre>
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["Df"],"name":[1],"type":["int"],"align":["right"]},{"label":["Sum Sq"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["Mean Sq"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["F value"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Pr(>F)"],"name":[5],"type":["dbl"],"align":["right"]}],"data":[{"1":"1","2":"55.47000","3":"55.470000","4":"28.20508","5":"0.000342194","_rn_":"regime"},{"1":"10","2":"19.66667","3":"1.966667","4":"NA","5":"NA","_rn_":"Residuals"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
-<pre class="r"><code>rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
+<pre class="r"><code>anova_7 = aov(peso_perdido ~ regime, dados)
+result = anova(anova_7)
+
+rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
 
 cat(
   &quot;Coeficiente R2 do modelo:&quot;,
@@ -3120,14 +3104,10 @@ normalmente:</p>
 dados = dados %&gt;%
   mutate(X = as.factor(X))
 
-result = anova(aov(Y ~ X, dados))
-result</code></pre>
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["Df"],"name":[1],"type":["int"],"align":["right"]},{"label":["Sum Sq"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["Mean Sq"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["F value"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Pr(>F)"],"name":[5],"type":["dbl"],"align":["right"]}],"data":[{"1":"4","2":"819","3":"204.75000","4":"5.543773","5":"0.006054546","_rn_":"X"},{"1":"15","2":"554","3":"36.93333","4":"NA","5":"NA","_rn_":"Residuals"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
-<pre class="r"><code>rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
+anova_15.1_idade = aov(Y ~ X, dados)
+result = anova(anova_15.1_idade)
+
+rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
 
 cat(
   &quot;Coeficiente R2 do modelo:&quot;,
@@ -3165,14 +3145,10 @@ dados = dados %&gt;%
 pelo aluno na primeira prova e de que o período de estudo está
 armazenado na variável <code>z</code>, que é categórica e tem 3 níveis:
 M, T e N. Assim, temos o teste:</p>
-<pre class="r"><code>result = anova(aov(y ~ z, dados))
-result</code></pre>
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["Df"],"name":[1],"type":["int"],"align":["right"]},{"label":["Sum Sq"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["Mean Sq"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["F value"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Pr(>F)"],"name":[5],"type":["dbl"],"align":["right"]}],"data":[{"1":"2","2":"353.5492","3":"176.7746","4":"1.037921","5":"0.3744455","_rn_":"z"},{"1":"18","2":"3065.6889","3":"170.3160","4":"NA","5":"NA","_rn_":"Residuals"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
-<pre class="r"><code>rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
+<pre class="r"><code>anova_8 = aov(y ~ z, dados)
+result = anova(anova_8)
+
+rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
 
 cat(
   &quot;Coeficiente R2 do modelo:&quot;,
@@ -3243,7 +3219,7 @@ maior evidência para a influência do grau da escoladidade sobre a renda
 média dos indivíduos, já que cerca de 93% da variação dos dados é agora
 explicada pelo grau de escolaridade e o p-valor do teste foi
 essencialmente igual a zero.</p></li>
-<li><p>Conforme já calculado acima, o estimador da média para o grupo
+<li><p>Conforme já calculado acima, a estimativa da média para o grupo
 com formação universitária é igual a 8.43, enquanto para os níveis
 fundamental e médio esses valores são iguais a 2.23 e 3.55,
 respectivamente. Podemos determinar um intervalo de confiança para a
@@ -3297,14 +3273,10 @@ também uma segunda coluna para a respectiva marca:</p>
   marca = factor(c(rep(&quot;A&quot;, 5), rep(&quot;B&quot;, 5)))
 )</code></pre>
 <p>Agora, vamos fazer o teste ANOVA propriamente dito:</p>
-<pre class="r"><code>result = anova(aov(notas ~ marca, dados))
-result</code></pre>
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["Df"],"name":[1],"type":["int"],"align":["right"]},{"label":["Sum Sq"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["Mean Sq"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["F value"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Pr(>F)"],"name":[5],"type":["dbl"],"align":["right"]}],"data":[{"1":"1","2":"48.4","3":"48.4","4":"3.903226","5":"0.08360856","_rn_":"marca"},{"1":"8","2":"99.2","3":"12.4","4":"NA","5":"NA","_rn_":"Residuals"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
-<pre class="r"><code>rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
+<pre class="r"><code>anova_10 = aov(notas ~ marca, dados)
+result = anova(anova_10)
+
+rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
 
 cat(
   &quot;Coeficiente R2 do modelo:&quot;,
@@ -3324,14 +3296,10 @@ Primeiro, vamos fazer a leitura dos dados:</p>
 <pre class="r"><code>dados = read_excel(&quot;problema15.11.xlsx&quot;) %&gt;%
   mutate(tipo_laje = as.factor(tipo_laje))</code></pre>
 <p>Agora, vamos fazer o teste estatístico propriamente dito:</p>
-<pre class="r"><code>result = anova(aov(q_agua ~ tipo_laje, dados))
-result</code></pre>
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["Df"],"name":[1],"type":["int"],"align":["right"]},{"label":["Sum Sq"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["Mean Sq"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["F value"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Pr(>F)"],"name":[5],"type":["dbl"],"align":["right"]}],"data":[{"1":"3","2":"1135.0","3":"378.3333","4":"29.79003","5":"8.775406e-07","_rn_":"tipo_laje"},{"1":"16","2":"203.2","3":"12.7000","4":"NA","5":"NA","_rn_":"Residuals"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
-<pre class="r"><code>rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
+<pre class="r"><code>anova_11 = aov(q_agua ~ tipo_laje, dados)
+result = anova(anova_11)
+
+rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
 
 cat(
   &quot;Coeficiente R2 do modelo:&quot;,
@@ -3375,7 +3343,7 @@ grupos</code></pre>
 95%, considerando o fator de correção de Bonferroni:</p>
 <pre class="r"><code>I = length(levels(dados$tipo_laje))#número de grupos
 n = nrow(dados)
-qb = qt(1 - (1/m)*0.05/2, df = n - I)</code></pre>
+qb = qt(1 - (1/m)*0.05/2, df = n - I) #quantil com correção</code></pre>
 <p>Agora, estamos em condições de determinar os intervalos de confiança
 para as diferenças de médias.</p>
 <p>Nesse caso, como todos os grupos têm o mesmo tamanho, o erro padrão
@@ -3411,6 +3379,29 @@ cat(
 \mu_3\)</span></p></li>
 <li><p><span class="math inline">\(\mu_3 = \mu_4\)</span></p></li>
 </ul>
+<p>Poderíamos também fazer todas essas comparações entre pares de médias
+por meio da função <code>PostHocTest</code>, o que pouparia muito
+trabalho:</p>
+<pre class="r"><code>PostHocTest(anova_11, method = &quot;bonferroni&quot;, conf.level = 0.95)</code></pre>
+<pre><code>## 
+##   Posthoc multiple comparisons of means : Bonferroni 
+##     95% family-wise confidence level
+## 
+## $tipo_laje
+##         diff    lwr.ci   upr.ci    pval    
+## II-I    -1.2  -7.98044  5.58044   1e+00    
+## III-I  -14.8 -21.58044 -8.01956 3.9e-05 ***
+## IV-I   -16.4 -23.18044 -9.61956 1.1e-05 ***
+## III-II -13.6 -20.38044 -6.81956   1e-04 ***
+## IV-II  -15.2 -21.98044 -8.41956 2.8e-05 ***
+## IV-III  -1.6  -8.38044  5.18044   1e+00    
+## 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>Como podemos ver, essa função já fornece diretamente as diferenças
+entre os pares de médias, os intervalos de confiança para essas
+diferenças e o p-valor associado a cada teste de igualdade entre os
+pares de médias.</p>
 </div>
 <div id="problema-12" class="section level2">
 <h2>Problema 12</h2>
@@ -3421,14 +3412,10 @@ cat(
 absorção de água pelo produto dentro de cada processo. Porém, existem
 dados negativos, o que vai dificultar a interpretação.</p>
 <p>Vamos fazer o teste ANOVA:</p>
-<pre class="r"><code>result = anova(aov(q_absorvida ~ processo, dados))
-result</code></pre>
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["Df"],"name":[1],"type":["int"],"align":["right"]},{"label":["Sum Sq"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["Mean Sq"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["F value"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Pr(>F)"],"name":[5],"type":["dbl"],"align":["right"]}],"data":[{"1":"4","2":"253.04","3":"63.26","4":"16.47396","5":"4.061422e-06","_rn_":"processo"},{"1":"20","2":"76.80","3":"3.84","4":"NA","5":"NA","_rn_":"Residuals"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
-<pre class="r"><code>rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
+<pre class="r"><code>anova_12 = aov(q_absorvida ~ processo, dados)
+result = anova(anova_12)
+
+rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
 
 cat(
   &quot;Coeficiente R2 do modelo:&quot;,
@@ -3514,6 +3501,28 @@ cat(
 \mu_E\)</span></p></li>
 <li><p><span class="math inline">\(\mu_B = \mu_C\)</span></p></li>
 </ul>
+<p>Novamente, poderíamos poupar muito trabalho fazendo as comparações a
+partir da função <code>PostHocTest()</code>:</p>
+<pre class="r"><code>PostHocTest(anova_12, method = &quot;bonferroni&quot;, conf.level = 0.95)</code></pre>
+<pre><code>## 
+##   Posthoc multiple comparisons of means : Bonferroni 
+##     95% family-wise confidence level
+## 
+## $processo
+##     diff      lwr.ci    upr.ci    pval    
+## B-A -6.2 -10.1081817 -2.291818 0.00068 ***
+## C-A -7.0 -10.9081817 -3.091818 0.00016 ***
+## D-A -2.0  -5.9081817  1.908182 1.00000    
+## E-A  0.8  -3.1081817  4.708182 1.00000    
+## C-B -0.8  -4.7081817  3.108182 1.00000    
+## D-B  4.2   0.2918183  8.108182 0.02915 *  
+## E-B  7.0   3.0918183 10.908182 0.00016 ***
+## D-C  5.0   1.0918183  8.908182 0.00649 ** 
+## E-C  7.8   3.8918183 11.708182 3.8e-05 ***
+## E-D  2.8  -1.1081817  6.708182 0.35189    
+## 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
 </div>
 <div id="problema-13" class="section level2">
 <h2>Problema 13</h2>
@@ -3522,14 +3531,10 @@ excel:</p>
 <pre class="r"><code>dados = read_excel(&quot;problema15.13.xlsx&quot;)
 dados = mutate(dados, metodo = as.factor(metodo))</code></pre>
 <p>Agora, fazemos o teste:</p>
-<pre class="r"><code>result = anova(aov(nota ~ metodo, dados))
-result</code></pre>
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["Df"],"name":[1],"type":["int"],"align":["right"]},{"label":["Sum Sq"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["Mean Sq"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["F value"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Pr(>F)"],"name":[5],"type":["dbl"],"align":["right"]}],"data":[{"1":"2","2":"50.08333","3":"25.041667","4":"6.053237","5":"0.00839879","_rn_":"metodo"},{"1":"21","2":"86.87500","3":"4.136905","4":"NA","5":"NA","_rn_":"Residuals"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
-<pre class="r"><code>rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
+<pre class="r"><code>anova_13 = aov(nota ~ metodo, dados)
+result = anova(anova_13)
+
+rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
 
 cat(
   &quot;Coeficiente R2 do modelo:&quot;,
@@ -3542,8 +3547,7 @@ Porém, o coeficiente de explicação do modelo ainda é baixo, em torno de
 37%.</p>
 <p>Como rejeitamos hipótese de igualdade das 3 médias, podemos
 determinar os intervalos de confiança 2 a 2 para as diferenças entre
-médias. Nesse caso, teremos 3 combinações possíveis. Vamos começar
-calculando as médias de cada grupo:</p>
+médias. Vamos primeiro ver os valores das médias de cada grupo:</p>
 <pre class="r"><code>grupos = dados %&gt;%
   group_by(metodo) %&gt;%
   summarise(n = n(), xbar = mean(nota))
@@ -3554,29 +3558,21 @@ grupos</code></pre>
 {"columns":[{"label":["metodo"],"name":[1],"type":["fct"],"align":["left"]},{"label":["n"],"name":[2],"type":["int"],"align":["right"]},{"label":["xbar"],"name":[3],"type":["dbl"],"align":["right"]}],"data":[{"1":"1","2":"8","3":"4.750"},{"1":"2","2":"8","3":"4.625"},{"1":"3","2":"8","3":"7.750"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
-<p>Agora, vamos calcular as grandezas necessárias para a a construção
-dos IC’s. Vamos também calcular o quantil para o intervalo de confiança
-de 95%, considerando o fator de correção de Bonferroni:</p>
-<pre class="r"><code>n = nrow(dados)
-I = length(levels(dados$metodo)) #número de grupos
-m = 3 #número de comparações
-qb = qt(1-(1/m)*0.05/2, df = n - I) #quantil
-se = sqrt(result$`Mean Sq`[2])</code></pre>
-<p>Como todos os grupos possuem o mesmo tamanho (<span class="math inline">\(n=8\)</span>), o erro padrão para o estimador da
-diferença entre médias será:</p>
-<pre class="r"><code>ep = se*sqrt(1/8 + 1/8)</code></pre>
-<p>Finalmente, vamos determinar os IC’s</p>
-<pre class="r"><code>cat(
-  &quot;IC(mu1 - mu2; 95%) =&quot;,
-  grupos$xbar[1] - grupos$xbar[2] + c(-1,1)*qb*ep,
-  &quot;\nIC(mu1 - mu3; 95%) =&quot;,
-  grupos$xbar[1] - grupos$xbar[3] + c(-1,1)*qb*ep,
-  &quot;\nIC(mu2 - mu3; 95%) =&quot;,
-  grupos$xbar[2] - grupos$xbar[3] + c(-1,1)*qb*ep
-)</code></pre>
-<pre><code>## IC(mu1 - mu2; 95%) = -2.520493 2.770493 
-## IC(mu1 - mu3; 95%) = -5.645493 -0.3545074 
-## IC(mu2 - mu3; 95%) = -5.770493 -0.4795074</code></pre>
+<p>Desta vez, vamos determinar os IC’s diretamente pela função
+<code>PostHocTest()</code>:</p>
+<pre class="r"><code>PostHocTest(anova_13, method = &quot;bonferroni&quot;, conf.level = 0.95)</code></pre>
+<pre><code>## 
+##   Posthoc multiple comparisons of means : Bonferroni 
+##     95% family-wise confidence level
+## 
+## $metodo
+##       diff     lwr.ci   upr.ci   pval    
+## 2-1 -0.125 -2.7704926 2.520493 1.0000    
+## 3-1  3.000  0.3545074 5.645493 0.0229 *  
+## 3-2  3.125  0.4795074 5.770493 0.0173 *  
+## 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
 <p>Portanto, concluímos que <span class="math inline">\(\mu_1 = \mu_2
 &lt; \mu_3\)</span>.</p>
 </div>
@@ -3590,14 +3586,10 @@ diferença entre médias será:</p>
   embalagem = factor(c(rep(&quot;A&quot;, 4), rep(&quot;B&quot;, 4), rep(&quot;C&quot;, 4)))
 )</code></pre>
 <p>Teste:</p>
-<pre class="r"><code>result = anova(aov(vendas ~ embalagem, dados))
-result</code></pre>
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["Df"],"name":[1],"type":["int"],"align":["right"]},{"label":["Sum Sq"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["Mean Sq"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["F value"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Pr(>F)"],"name":[5],"type":["dbl"],"align":["right"]}],"data":[{"1":"2","2":"152","3":"76.00000","4":"4.275","5":"0.04952725","_rn_":"embalagem"},{"1":"9","2":"160","3":"17.77778","4":"NA","5":"NA","_rn_":"Residuals"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
-<pre class="r"><code>rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
+<pre class="r"><code>anova_14 = aov(vendas ~ embalagem, dados)
+result = anova(anova_14)
+
+rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
 cat(
   &quot;Coeficiente R2 do modelo:&quot;,
   rsq
@@ -3606,41 +3598,34 @@ cat(
 <p>Como vemos, o modelo explica cerca de 49% da variância dos dados. O
 resultado está no limiar da significância de 5%. Assim, rejeitamos a
 hipótese de igualdade das 3 médias.</p>
-<p>Vamos agora construir os intervalos de confiança 2 a 2 para a
-diferença de médias. Novamente, temos 3 grupos, de modo que existêm 3
-comparações possíveis. Vamos iniciar calculando as médias dentro de cada
-grupo:</p>
+<p>Para comparar as médias dos grupos, vamos primeiro visualizá-las:</p>
 <pre class="r"><code>grupos = dados %&gt;%
   group_by(embalagem) %&gt;%
   summarise(n = n(), xbar = mean(vendas))
+
 grupos</code></pre>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
 {"columns":[{"label":["embalagem"],"name":[1],"type":["fct"],"align":["left"]},{"label":["n"],"name":[2],"type":["int"],"align":["right"]},{"label":["xbar"],"name":[3],"type":["dbl"],"align":["right"]}],"data":[{"1":"A","2":"4","3":"14"},{"1":"B","2":"4","3":"22"},{"1":"C","2":"4","3":"15"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
-<p>Agora, vamos calcular as grandezas necessárias para a construção dos
-IC’s:</p>
-<pre class="r"><code>n = nrow(dados) #quantidade total de elementos
-m = 3 #Número de comparações
-I = length(levels(dados$embalagem))
-qb = qt(1-(1/m)*0.05/2, df = n - I) #quantil
-se = sqrt(result$`Mean Sq`[2])</code></pre>
-<p>Como todos os grupos possuem o mesmo tamanho (<span class="math inline">\(n=4\)</span>), o erro padrão para o estimador da
-diferença entre médias será sempre igual a:</p>
-<pre class="r"><code>ep = se*sqrt(1/4 + 1/4)</code></pre>
-<p>Finalmente, vamos determinar os IC’s:</p>
-<pre class="r"><code>cat(
-  &quot;IC(muA - muB; 95%) =&quot;,
-  grupos$xbar[1] - grupos$xbar[2] + c(-1,1)*qb*ep,
-  &quot;\nIC(muA - muC; 95%) =&quot;,
-  grupos$xbar[1] - grupos$xbar[3] + c(-1,1)*qb*ep,
-  &quot;\nIC(muB - muC; 95%) =&quot;,
-  grupos$xbar[2] - grupos$xbar[3] + c(-1,1)*qb*ep
-)</code></pre>
-<pre><code>## IC(muA - muB; 95%) = -16.74548 0.7454827 
-## IC(muA - muC; 95%) = -9.745483 7.745483 
-## IC(muB - muC; 95%) = -1.745483 15.74548</code></pre>
+<p>Vamos agora construir os intervalos de confiança 2 a 2 para a
+diferença de médias. Novamente, temos 3 grupos, de modo que existêm 3
+comparações possíveis. Vamos aplicar a função <code>PostHocTest()</code>
+à nossa anova:</p>
+<pre class="r"><code>PostHocTest(anova_14, method = &quot;bonf&quot;, conf.level = 0.95)</code></pre>
+<pre><code>## 
+##   Posthoc multiple comparisons of means : Bonferroni 
+##     95% family-wise confidence level
+## 
+## $embalagem
+##     diff      lwr.ci    upr.ci   pval    
+## B-A    8  -0.7454827 16.745483 0.0752 .  
+## C-A    1  -7.7454827  9.745483 1.0000    
+## C-B   -7 -15.7454827  1.745483 0.1304    
+## 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
 <p>Como vemos nos resultados acima, não é possível rejeitar as hipóteses
 de igualdade das médias 2 a 2 no nível de confianã de 5%. Parte disso
 resulta do fato de que o p-valor do teste ANOVA feito ficou no limiar
@@ -3654,14 +3639,10 @@ de excel:</p>
 dados = mutate(dados, receita = as.factor(receita))</code></pre>
 <p>Aqui, podemos testar se as médias das notas atribuídas para as
 diferentes receitas são iguais entre si. Vamos obter a tabela ANOVA:</p>
-<pre class="r"><code>result = anova(aov(nota ~ receita, dados))
-result</code></pre>
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["Df"],"name":[1],"type":["int"],"align":["right"]},{"label":["Sum Sq"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["Mean Sq"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["F value"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Pr(>F)"],"name":[5],"type":["dbl"],"align":["right"]}],"data":[{"1":"3","2":"17.5","3":"5.833333","4":"0.8274232","5":"0.4942617","_rn_":"receita"},{"1":"20","2":"141.0","3":"7.050000","4":"NA","5":"NA","_rn_":"Residuals"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
-<pre class="r"><code>rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
+<pre class="r"><code>anova_15 = aov(nota ~ receita, dados)
+result = anova(anova_15)
+
+rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
 cat(
   &quot;Coeficiente R2 do modelo:&quot;,
   rsq
@@ -3704,7 +3685,8 @@ graus de liberdade associados à soma de quadrados totais, <span class="math inl
 dentro dos grupos (resíduos) e <span class="math inline">\(I-1\)</span>
 g.l associados à soma dos quadrados entre grupos. Assim, podemos
 calcular a estatística do teste, o p-valor e o coeficiente <span class="math inline">\(R^2\)</span>:</p>
-<pre class="r"><code>QMDen = SQDen/(nH + nE + nB - I)
+<pre class="r"><code>I = 3 #número de grupos
+QMDen = SQDen/(nH + nE + nB - I)
 QMEnt = SQEnt/(I - 1)
 
 F_ = QMEnt/QMDen
@@ -3772,14 +3754,10 @@ dados = mutate(dados, livro = as.factor(livro))</code></pre>
 <p>Agora, vamos fazer o teste ANOVA, a fim de verificar se há evidências
 de que o número médio de vezes que a construção silábica apareceu em
 cada livro é a mesma:</p>
-<pre class="r"><code>result = anova(aov(numero_vezes ~ livro, dados))
-result</code></pre>
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["Df"],"name":[1],"type":["int"],"align":["right"]},{"label":["Sum Sq"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["Mean Sq"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["F value"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Pr(>F)"],"name":[5],"type":["dbl"],"align":["right"]}],"data":[{"1":"3","2":"340.0810","3":"113.36032","4":"6.709684","5":"0.002040785","_rn_":"livro"},{"1":"23","2":"388.5857","3":"16.89503","4":"NA","5":"NA","_rn_":"Residuals"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
-<pre class="r"><code>rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
+<pre class="r"><code>anova_17 = aov(numero_vezes ~ livro, dados)
+result = anova(anova_17)
+
+rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
 cat(
   &quot;Coeficiente R2 do modelo:&quot;,
   rsq
@@ -3789,65 +3767,35 @@ cat(
 dos dados. Além disso, esse resultado é significativo, já que o p-valor
 do teste resultou ser menor que 1%.</p>
 <p>Como rejeitamos a hipótese de igualdade das 4 médias, podemos agora
-analisar a igualdade duas a duas. Para isso, vamos primeiro calcular e
-enumerar as comparações possíveis:</p>
-<pre class="r"><code>config = combn(1:4, 2) #comparações possíveis
-config</code></pre>
-<pre><code>##      [,1] [,2] [,3] [,4] [,5] [,6]
-## [1,]    1    1    1    2    2    3
-## [2,]    2    3    4    3    4    4</code></pre>
-<pre class="r"><code>m = ncol(config) #número de comparações possíveis</code></pre>
-<p>Ou seja, podemos fazer 6 comparações. Vamos primeiro calcular a média
-de cada grupo:</p>
+analisar a igualdade dos pares de médias por meio da função
+<code>PostHocTest()</code>. Mas antes, vamos olhar as médias por
+grupo:</p>
 <pre class="r"><code>grupos = dados %&gt;%
   group_by(livro) %&gt;%
   summarise(n = n(), xbar = mean(numero_vezes))
+
 grupos</code></pre>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
 {"columns":[{"label":["livro"],"name":[1],"type":["fct"],"align":["left"]},{"label":["n"],"name":[2],"type":["int"],"align":["right"]},{"label":["xbar"],"name":[3],"type":["dbl"],"align":["right"]}],"data":[{"1":"1","2":"7","3":"24.71429"},{"1":"2","2":"5","3":"29.80000"},{"1":"3","2":"8","3":"24.75000"},{"1":"4","2":"7","3":"32.85714"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
-<p>Agora, vamos calcular o desvio padrão dos resíduos e o erro padrão
-para cada comparação:</p>
-<pre class="r"><code>n1 = grupos$n[1]
-n2 = grupos$n[2]
-n3 = grupos$n[3]
-n4 = grupos$n[4]
-I = length(levels(dados$livro)) #número de grupos
-#Devio padrão dos resíduos
-se = sqrt(result$`Mean Sq`[2])
-#Erro padrão para as diferenças entre médias
-ep12 = se*sqrt(1/n1 + 1/n2)
-ep13 = se*sqrt(1/n1 + 1/n3)
-ep14 = se*sqrt(1/n1 + 1/n4)
-ep23 = se*sqrt(1/n2 + 1/n3)
-ep24 = se*sqrt(1/n2 + 1/n4)
-ep34 = se*sqrt(1/n3 + 1/n4)
-
-#Quantil corrigido para o IC(95%)
-qb = qt(1-(1/m)*0.05/2, df = nrow(dados) - I)</code></pre>
-<p>Finalmente, vamos determinar os IC’s dois a dois:</p>
-<pre class="r"><code>cat(
-  &quot;IC(mu_1 - mu_2; 95%) =&quot;,
-  grupos$xbar[1] - grupos$xbar[2] + c(-1,1)*qb*ep12,
-  &quot;\nIC(mu_1 - mu_3; 95%) =&quot;,
-  grupos$xbar[1] - grupos$xbar[3] + c(-1,1)*qb*ep13,
-  &quot;\nIC(mu_1 - mu_4; 95%) =&quot;,
-  grupos$xbar[1] - grupos$xbar[4] + c(-1,1)*qb*ep14,
-  &quot;\nIC(mu_2 - mu_3; 95%) =&quot;,
-  grupos$xbar[2] - grupos$xbar[3] + c(-1,1)*qb*ep23,
-  &quot;\nIC(mu_2 - mu_4; 95%) =&quot;,
-  grupos$xbar[2] - grupos$xbar[4] + c(-1,1)*qb*ep24,
-  &quot;\nIC(mu_3 - mu_4; 95%) =&quot;,
-  grupos$xbar[3] - grupos$xbar[4] + c(-1,1)*qb*ep34
-)</code></pre>
-<pre><code>## IC(mu_1 - mu_2; 95%) = -12.03231 1.860883 
-## IC(mu_1 - mu_3; 95%) = -6.175697 6.104268 
-## IC(mu_1 - mu_4; 95%) = -14.4842 -1.80151 
-## IC(mu_2 - mu_3; 95%) = -1.713277 11.81328 
-## IC(mu_2 - mu_4; 95%) = -10.00374 3.889454 
-## IC(mu_3 - mu_4; 95%) = -14.24713 -1.96716</code></pre>
+<pre class="r"><code>PostHocTest(anova_17, method = &quot;bonf&quot;, conf.level = 0.95)</code></pre>
+<pre><code>## 
+##   Posthoc multiple comparisons of means : Bonferroni 
+##     95% family-wise confidence level
+## 
+## $livro
+##            diff     lwr.ci    upr.ci   pval    
+## 2-1  5.08571429  -1.860883 12.032312 0.2739    
+## 3-1  0.03571429  -6.104268  6.175697 1.0000    
+## 4-1  8.14285714   1.801510 14.484204 0.0070 ** 
+## 3-2 -5.05000000 -11.813277  1.713277 0.2511    
+## 4-2  3.05714286  -3.889454 10.003740 1.0000    
+## 4-3  8.10714286   1.967160 14.247125 0.0054 ** 
+## 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
 <p>Assim, concluímos que:</p>
 <p><span class="math display">\[\mu_1 = \mu_2 = \mu_3 &lt;
 \mu_4\]</span></p>
@@ -3876,14 +3824,10 @@ consideramos apenas 2 níveis para o fator turno - diurno e noturno.
 Desse modo, os turnos manhã e tarde foram fundidos em um único grupo.
 Aqui, contudo, vamos considerar os 3 grupos em separado.</p>
 <p>Agora, vamos fazer o teste estatístico:</p>
-<pre class="r"><code>result = anova(aov(desempenho ~ turno, dados))
-result</code></pre>
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["Df"],"name":[1],"type":["int"],"align":["right"]},{"label":["Sum Sq"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["Mean Sq"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["F value"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Pr(>F)"],"name":[5],"type":["dbl"],"align":["right"]}],"data":[{"1":"2","2":"7.528869","3":"3.7644345","4":"11.97032","5":"0.0004940125","_rn_":"turno"},{"1":"18","2":"5.660655","3":"0.3144808","4":"NA","5":"NA","_rn_":"Residuals"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
-<pre class="r"><code>rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
+<pre class="r"><code>anova_19 = aov(desempenho ~ turno, dados)
+result = anova(anova_19)
+
+rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
 
 cat(
   &quot;Coeficiente R2 do modelo:&quot;,
@@ -3908,39 +3852,21 @@ grupos</code></pre>
 {"columns":[{"label":["turno"],"name":[1],"type":["fct"],"align":["left"]},{"label":["n"],"name":[2],"type":["int"],"align":["right"]},{"label":["xbar"],"name":[3],"type":["dbl"],"align":["right"]}],"data":[{"1":"M","2":"7","3":"3.385714"},{"1":"N","2":"8","3":"3.662500"},{"1":"T","2":"6","3":"2.233333"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
-<p>Agora, vamos calcular o desvio padrão dos resíduos, <span class="math inline">\(S_e^2\)</span>, bem como o erro padrão para cada
-comparação. Devemos notar também que o tamanho dos grupos são
-diferentes, conforme mostrado acima.</p>
-<pre class="r"><code>#Tamanhos dos grupos
-n1 = grupos$n[1] #Tamanho do grupo matinal
-n2 = grupos$n[2] #Tamanho do grupo noturno
-n3 = grupos$n[3] #Tamanho do grupo da tarde
-n = nrow(dados)
-I = length(levels(dados$turno))
-m = 3 #Número de comparações
-
-#Desvio padrão dos resíduos
-se = sqrt(result$`Mean Sq`[2])
-
-#Erro padrão para as comparações entre médias:
-ep12 = se*sqrt(1/n1 + 1/n2)
-ep13 = se*sqrt(1/n1 + 1/n3)
-ep23 = se*sqrt(1/n2 + 1/n3)
-
-#Quantil para o IC(95%), corrigido pelo fator de Bolfarrini:
-qb = qt(1-(1/m)*0.05/2, df = n - I)</code></pre>
-<p>E agora, os IC’s</p>
-<pre class="r"><code>cat(
-  &quot;IC(mu_M - mu_T; 95%) =&quot;,
-  grupos$xbar[1] - grupos$xbar[3] + c(-1,1)*qb*ep13,
-  &quot;\nIC(mu_M - mu_N; 95%) =&quot;,
-  grupos$xbar[1] - grupos$xbar[2] + c(-1,1)*qb*ep12,
-  &quot;\nIC(mu_T - mu_N; 95%) =&quot;,
-  grupos$xbar[3] - grupos$xbar[2] + c(-1,1)*qb*ep23
-)</code></pre>
-<pre><code>## IC(mu_M - mu_T; 95%) = 0.3289876 1.975774 
-## IC(mu_M - mu_N; 95%) = -1.042756 0.4891846 
-## IC(mu_T - mu_N; 95%) = -2.228455 -0.6298779</code></pre>
+<p>Agora, vamos fazer as comparações propriamente ditas, por meio da
+função <code>PostHocTest()</code>:</p>
+<pre class="r"><code>PostHocTest(anova_19, method = &quot;bonf&quot;)</code></pre>
+<pre><code>## 
+##   Posthoc multiple comparisons of means : Bonferroni 
+##     95% family-wise confidence level
+## 
+## $turno
+##           diff     lwr.ci     upr.ci    pval    
+## N-M  0.2767857 -0.4891846  1.0427560 1.00000    
+## T-M -1.1523810 -1.9757743 -0.3289876 0.00499 ** 
+## T-N -1.4291667 -2.2284554 -0.6298779 0.00051 ***
+## 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
 <p>Portanto, concluímos que:</p>
 <p><span class="math display">\[ \mu_M = \mu_N &gt; \mu_T \]</span></p>
 </div>
@@ -3955,14 +3881,10 @@ perda de peso resultante. Já fizemos isso no problema 7, mas naquele
 caso consideramos apenas os níveis 1 e 2 para o fator regime. Agora,
 vamos considerar os 3 níveis existentes.</p>
 <p>Vamos fazer o teste propriamente dito:</p>
-<pre class="r"><code>result = anova(aov(peso_perdido ~ regime, dados))
-result</code></pre>
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["Df"],"name":[1],"type":["int"],"align":["right"]},{"label":["Sum Sq"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["Mean Sq"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["F value"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Pr(>F)"],"name":[5],"type":["dbl"],"align":["right"]}],"data":[{"1":"2","2":"65.08","3":"32.540","4":"15.14898","5":"0.0002512437","_rn_":"regime"},{"1":"15","2":"32.22","3":"2.148","4":"NA","5":"NA","_rn_":"Residuals"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
-<pre class="r"><code>rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
+<pre class="r"><code>anova_20 = aov(peso_perdido ~ regime, dados)
+result = anova(anova_20)
+
+rsq = result$`Sum Sq`[1]/sum(result$`Sum Sq`)
 
 cat(
   &quot;Coeficiente R2 do modelo:&quot;,
@@ -4003,34 +3925,20 @@ grupos</code></pre>
 {"columns":[{"label":["regime"],"name":[1],"type":["fct"],"align":["left"]},{"label":["n"],"name":[2],"type":["int"],"align":["right"]},{"label":["xbar"],"name":[3],"type":["dbl"],"align":["right"]}],"data":[{"1":"1","2":"6","3":"12.333333"},{"1":"2","2":"6","3":"8.033333"},{"1":"3","2":"6","3":"11.733333"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
-<p>Agora, vamos calcular o desvio padrão dos resíduos, <span class="math inline">\(S_e^2\)</span>, bem como o erro padrão para cada
-comparação. Como os tamanhos dos grupos são todos iguais, o erro padrão
-para comparação entre médias será sempre o mesmo.</p>
-<pre class="r"><code>#Tamanhos dos grupos
-n = nrow(dados)
-I = length(levels(dados$regime))
-m = 3 #Número de comparações
-
-#Desvio padrão dos resíduos
-se = sqrt(result$`Mean Sq`[2])
-
-#Erro padrão para as comparações entre médias:
-ep = se*sqrt(1/6 + 1/6)
-
-#Quantil para o IC(95%), corrigido pelo fator de Bolfarrini:
-qb = qt(1-(1/m)*0.05/2, df = n - I)</code></pre>
-<p>E agora, os IC’s</p>
-<pre class="r"><code>cat(
-  &quot;IC(mu_1 - mu_2; 95%) =&quot;,
-  grupos$xbar[1] - grupos$xbar[2] + c(-1,1)*qb*ep,
-  &quot;\nIC(mu_1 - mu_3; 95%) =&quot;,
-  grupos$xbar[1] - grupos$xbar[3] + c(-1,1)*qb*ep,
-  &quot;\nIC(mu_2 - mu_3; 95%) =&quot;,
-  grupos$xbar[2] - grupos$xbar[3] + c(-1,1)*qb*ep
-)</code></pre>
-<pre><code>## IC(mu_1 - mu_2; 95%) = 2.020644 6.579356 
-## IC(mu_1 - mu_3; 95%) = -1.679356 2.879356 
-## IC(mu_2 - mu_3; 95%) = -5.979356 -1.420644</code></pre>
+<p>Agora, vamos comparar os pares de médias:</p>
+<pre class="r"><code>PostHocTest(anova_20, method = &quot;bonf&quot;)</code></pre>
+<pre><code>## 
+##   Posthoc multiple comparisons of means : Bonferroni 
+##     95% family-wise confidence level
+## 
+## $regime
+##     diff    lwr.ci    upr.ci    pval    
+## 2-1 -4.3 -6.579356 -2.020644 0.00041 ***
+## 3-1 -0.6 -2.879356  1.679356 1.00000    
+## 3-2  3.7  1.420644  5.979356 0.00164 ** 
+## 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
 <p>Assim, concluímos que:</p>
 <p><span class="math display">\[ \mu_1 = \mu_3 &gt; \mu_2 \]</span></p>
 </div>
