@@ -1239,6 +1239,71 @@ Aqui, vemos novamente o valor p associado à estatística F e o $R^2$, que indic
 ## Problema 28
 
 
+Primeiro, vamos passar os dados do problema para o R:
+
+
+```{r}
+dados = data.frame(
+  trimestre = 1:8,
+  Y = c(25, 13, 8, 20, 25, 12, 10, 15),
+  X = c(11, 5, 3, 9, 12, 6, 5, 9),
+  Z = c(2, 13, 16, 7, 4, 10, 13, 4)
+)
+```
+
+(a)
+
+```{r}
+p1 = ggplot(aes(x = X, y = Y), data = dados) + 
+  geom_point(size = 2.5, col = "orange") + 
+  labs(
+    x = "Desp. c/ propag.",
+    y = "vendas"
+  ) + 
+  theme(text = element_text(size = 16))
+
+p2 = ggplot(aes(x = Z, y = Y), data = dados) + 
+  geom_point(size = 2.5, col = "green") + 
+  labs(
+    x = "Temp. média",
+    y = "vendas"
+  ) + 
+  theme(text = element_text(size = 16))
+
+cowplot::plot_grid(p1, p2)
+```
+
+Como podemos ver na figura acima, o volume de vendas parece aumentar com o aumento da despesa com propaganda e parece diminuir com o aumento da temperatura média, ambos com uma relação gráfica aparentemente linear.
+
+
+(b) Vamos fazer isso com o auxílio da função `lm()`:
+
+
+```{r}
+mod_vendas_propag = lm(Y ~ X, dados)
+mod_vendas_propag
+mod_vendas_temp = lm(Y ~ Z, dados)
+mod_vendas_temp
+```
+
+Assim, as retas de regressão linear pedidas são:
+
+
+$$ \hat{y} = 1,313 + 1,958x $$ e
+
+$$ \hat{y} = 25,710 - 1,126z $$
+Podemos também plotar os modelos lado a lado para comparar:
+
+
+
+```{r}
+ggplot(aes(x = X, y = Y), data = dados) + 
+stat_smooth(method = "lm", formula = y ~ x) + 
+  labs(
+    x = "Desp. c/ propag."
+  )
+```
+
 
 ## Problema 29
 
