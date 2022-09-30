@@ -544,6 +544,9 @@ pt(1.65, df = 20-2)
 
 ## Análise de resíduos
 
+Para verificar se um modelo de regressão linear ajustado atende aos pressupostos, podemos aplicar a função `plot()` à saída de `lm()`. Para entendermos qual será o resultado, podemos rodar o comando `?plot.lm`.
+
+
 - A função `par()` é usada para definir parâmetros de gráficos
 
 - O argumento `mfrow` divide o gráfico conforme uma matriz $n_r \times c_c$, plotando primeiro os quadros horizontais.
@@ -1297,11 +1300,50 @@ Podemos também plotar os modelos lado a lado para comparar:
 
 
 ```{r}
-ggplot(aes(x = X, y = Y), data = dados) + 
-stat_smooth(method = "lm", formula = y ~ x) + 
+p1 = ggplot(aes(x = X, y = Y), data = dados) + 
+  geom_point(size = 2.2, col = "red") +
+  stat_smooth(method = "lm", formula = y ~ x) + 
   labs(
-    x = "Desp. c/ propag."
-  )
+    x = "Desp. c/ propag.",
+    y = "vendas"
+  ) + 
+  theme(text = element_text(size = 16))
+
+p2 = ggplot(aes(x = X, y = Z), data = dados) + 
+  geom_point(size = 2.2, col = "red") + 
+  stat_smooth(method = "lm", formula = y ~ x, col = "green") + 
+  labs(
+    x = "Temp. Média",
+    y = "vendas"
+  ) + 
+  theme(text = element_text(size = 16))
+
+cowplot::plot_grid(p1, p2)
+```
+
+(c) Olhando para as duas retas, vemos que os resíduos são semelhantes, sendo que a maior diferença entre elas são suas inclinações, já que uma é positiva e a outra é negativa. Para decidir sobre qual modelo utilizar dentre os dois, vamos ver o resumo estatístico de ambos:
+
+
+```{r}
+summary(mod_vendas_propag)
+summary(mod_vendas_temp)
+```
+
+Ao comparar os resultados, vemos que ambos os modelos parecem bons, já que os dois têm valor de $R^2$ alto e ambos os resultados são significantes, com $p < 0,01$. Contudo, no primeiro modelo (vendas como função da despesa com propaganda), o valor da estatística $F$ é maior, tendo portanto um menor valor de p associado. Além disso, no primeiro modelo, o coeficiente de explicação do modelo $R^2$ é maior.
+
+Pelo exposto, escolhemos o modelo $y = f(x)$ como sendo o mais apropriado.
+
+
+(d) Aqui, queremos avaliar a resposta dos modelos para os valores dados da respectiva variável preditora. Para isso, vamos utilizar a função `predict()`:
+
+
+```{r}
+cat("Previsão do modelo vendas em função do gasto com propaganda:",
+    predict(mod_vendas_propag, newdata = data.frame(X = 8), interval = "confidence"),
+    "\n\n",
+    "Previsão do modelo vendas em função da temperatura média:",
+    predict(mod_vendas_temp, newdata = data.frame(Z = 10), interval = "confidence")
+    )
 ```
 
 
