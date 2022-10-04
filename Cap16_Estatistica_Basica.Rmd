@@ -1350,29 +1350,288 @@ cat("Previsão do modelo vendas em função do gasto com propaganda:",
 ## Problema 29
 
 
+(a) Para encontrar os estimadores do modelo, vamos usar a equação 16.33, combinada com as 16.14. Primeiramente, notamos que há uma forma mais direta de obter o estimador do parâmetro $b$ a partir da soma dos quadrados devido à regressão:
+
+
+$$ \hat{a} = \bar{y} - \hat{b} \bar{x} $$
+
+$$ SQReg = \hat{b}^2 \sum_{i = 1}^n (x_i - \bar{x})^2 = \hat{b}^2 (n-1) s_x^2. $$
+
+Como $R^2 = \frac{SQReg}{SQTot}$, podemos escrever
+
+
+$$ \hat{b}^2 = \dfrac{SQReg}{(n-1) s_x^2} = \dfrac{r^2 SQTot}{(n-1) s_x^2}. $$
+
+Ainda, como $s_y^2 = \frac{SQTot}{n-1}$,
+
+
+$$ \hat{b}^2 = \dfrac{r^2 s_y^2}{s_x^2}.  $$
+
+Finalmente, vamos calcular os valores pedidos no R:
+
+
+```{r}
+n = 7
+xbar = 400
+ybar = 60
+sx = 216.02
+sy = 13.84
+rsq = 0.922
+b = rsq*sy/sx
+a = ybar - b*xbar
+```
+
+Logo, o modelo procurado é
+
+
+$$ \hat{y} = 36,372 + 0,059x $$
+ 
+(b) Como não temos o conjunto de dados para aplicar as funções `lm()` e `anova()`, vamos calcular as entradas da tabela ANOVA, lembrando que teremos $n-2 = 5$ graus de liberdade associados à aos resíduos e $n-1 - (n-2) = 1$ grau de liberdade associado à regressão. 
+
+Pelas equações dadas acima, temos:
+
+
+```{r}
+SQReg = (n-1)*sx^2*b^2
+QMReg = SQReg/1
+SQTot = (n-1)*sy^2
+SQRes = SQTot - SQReg
+QMRes = SQRes/(n-2)
+se2 = QMRes
+F_ = QMReg/se2
+```
+
+
+(c) Primeiramente vamos lembrar que a estatística F nos permite testar a hipótese $H_0: b = 0$ contra a hipótese alternativa $H_1: b \neq 0$. Desse modo, como já temos o valor de $R^2$, que é 0,922, o que precisamos fazer agora é se o resultado é significativo, ou seja, se de fato a quantidade de fertilizante pode ser usada para prever a produtividade. Vamos então calcular o p valor associado à estatística F:
+
+
+```{r}
+pf(F_, 1, n-2, lower.tail = FALSE)
+```
+
+Logo, dado que $p < 0,01$, rejeitamos a hipótese nula e concluímos que o modelo de fato serve para explicar a produtividade em função da quantidade de fertilizante.
 
 ## Problema 30
 
+Vamos carregar os dados referentes ao problema:
+
+```{r}
+dados = data.frame(
+  N = 1:25,
+  x = c(35.3, 29.7, 30.8, 58.8, 61.4, 71.3, 74.4, 76.7, 70.7, 57.5, 46.4, 28.9, 28.1, 39.1, 46.8, 48.5, 59.3, 70, 70, 74.5, 72.1, 58.1, 44.6, 33.4, 28.6
+        ),
+  y = c(10.98, 11.13, 12.51, 8.4, 9.27, 8.73, 6.36, 8.5, 7.82, 9.14, 8.24, 12.19, 11.88, 9.57, 10.94, 9.58, 10.09, 8.11, 6.83, 8.88, 7.68, 8.47, 8.86, 10.36, 11.08
+        )
+)
+```
+
+Agora, vamos obter o ajuste de mínimos quadrados para o modelo linear desejado:
+
+
+```{r}
+modelo = lm(y ~ x, dados)
+summary(modelo)
+```
+
+A equação que define o modelo é, portanto,
+
+$$ \hat{y} = 13,62 - 0,08x $$
+
+```{r}
+par(mfrow = c(2,2))
+plot(dados$x, dados$y, pch = 16, xlab = "temperatura", ylab = "qtde vapor", main = "fitted model")
+abline(modelo)
+plot(modelo, which = 1:3, pch = 16)
+```
 
 
 ## Problema 31
 
+Primeiramente, temos que lembrar que o modelo 16.71 não é linear nos parâmetros. Por esse motivo, precisamos linearizá-lo por meio da transformação logarítmica. Como isso já está feito no livro, vamos apenas fazer o ajuste do modelo $y_i^* = \alpha^* + \beta x_i + \epsilon_i^*$, no qual $y_i^* = \log y_i$ e $\alpha^* = \log \alpha$.
+
+Dessa forma, vamos carregar os dados necessários:
+
+
+```{r}
+dados = data.frame(
+  ano = c(seq(-9, -1, 2), seq(1, 9, 2)),
+  logy = c(2.2, 3.2, 4.3, 4.8, 5.2, 5.6, 5.9, 6.4, 7.1, 7.9)
+)
+```
+
+Agora, vamos obter as estimativas do modelo:
+
+
+```{r}
+modelo = lm(logy ~ ano, dados)
+summary(modelo)
+```
+Agora, vamos obter a tabela ANOVA pedida:
+
+
+```{r}
+anova(modelo)
+```
+Por fim, vamos obter os intervalos de confiança para os parâmetros do modelo, com o auxílio da função `confint()`
+
+
+```{r}
+confint(modelo)
+```
 
 
 ## Problema 32
 
+Nesse caso, como $\alpha^* = \log \alpha$, para descobrirmos o intervalo de confiança para $\alpha$, basta calcularmos a exponencial dos extremos do intervalo já obtido:
+
+
+```{r}
+exp(confint(modelo, 1))
+```
 
 
 ## Problema 33
 
+De volta aos dados do exemplo 15.1 do livro:
+
+
+```{r}
+dados = read_excel("exemplo-15.1.xlsx")
+```
+
+
+(a) Primeiro, vamos ajustar o modelo de regressão linear para $Y$ em função de $X$:
+
+
+```{r}
+modelo = lm(Y ~ X, dados)
+```
+
+Agora, vamos construir o IC pedido através da função `predict()`
+
+
+```{r}
+predict(modelo, newdata = data.frame(X = 28), interval = "confidence")
+```
+
+(b) De maneira semelhante, vamos obter agora o intervalo de predição de $Y$ para $X = 28$. O códito utilizado será o mesmo do item anterior, trocando o argumento `interval = confidence` por `interval = predict`:
+
+
+```{r}
+predict(modelo, newdata = data.frame(X = 28), interval = "predict")
+```
+
+
+(c) Comparando os resultados, vemos que as estimativas pontuais são idênticas. Contudo, as larguras dos intervalos são diferentes. Mais especificamente, o intervalo de predição tem sempre maior amplitude que o intervalo de confiança. De fato, são duas coisas distintas: no caso do item (a), estamos interessados no intervalo de confiança para a resposta MÉDIA quando a variável preditora é igual a 28. No item (b), por outro lado, estamos interessados no intervalo de "confiança" para uma medida futura da resposta $Y$ quando $X = 28$, o que envolve também a variância  do erro (ou resíduo). No primeiro caso, como o valor esperado do resíduo é zero, temos um termo a menos.
 
 
 ## Problema 34
 
+Vamos carregar novamente os dados do problema 3:
+
+```{r}
+dados = data.frame(
+  Pot = c(38, 43, 32, 26, 33, 19, 27, 23, 14, 21),
+  Temp = c(30, 30, 50, 50, 50, 70, 70, 70, 90, 90)
+)
+```
+
+
+Agora, para obter os gráficos solicitados, precisamos escrever as expressões para os intervalos de confiança e de predição, substituir as grandezas que já temos e deixar o resultado como função da variável independente (temperatura). Após isso, basta plotarmos o gráfico desse resultado para alguns valores de temperatura previamente definidos. 
+
+Tudo isso pode ser facilitado pelo uso da função `predict()`. Com ela, podemos obter os intervalos de confiança e de predição muito facilmente, bastando fornecer como entrada o modelo, os valores da variável independente para predição e o tipo de intervalo - predição ou confiança:
+
+
+```{r}
+conf = predict(lm(Pot ~ Temp, dados), newdata = data.frame(Temp = 0:140), interval = "confidence", level = 0.95) %>%
+  as.data.frame()
+
+pred = predict(lm(Pot ~ Temp, dados), newdata = data.frame(Temp = 0:140), interval = "predict", level = 0.95) %>%
+  as.data.frame()
+```
+
+
+```{r}
+ggplot() + 
+  geom_line(data = conf, aes(x = 0:140, y = lwr), col = "green", size = 1) + 
+  geom_line(data = conf, aes(x = 0:140, y = upr), col = "green", size = 1) +
+  geom_line(data = pred, aes(x = 0:140, y = lwr), col = "red", size = 1) +
+  geom_line(data = pred, aes(x = 0:140, y = upr), col = "red", size = 1) + 
+  geom_hline(yintercept = 0, col = "darkgray") +
+  labs(
+    title = "Intervalos de confiança e de predição",
+    x = "temperatura",
+    y = "potência"
+  ) + 
+  scale_x_continuous(breaks = seq(0, 200, 20)) +
+  theme(text = element_text(size = 16))
+```
+
+
+No gráfico acima, mostramos o intervalo de confiança (em verde) e o intervalo de predição (em vermelho). De cara, já vemos graficamente a maior amplitude do intervalo de predição relativamente ao intervalo de confiança, o que confirma o que já sabemos que é um resultado geral.
+
+Vemos também que, de acordo com o limite inferior do intervalo de confiança, a potência média já poderia ser considerada nula quando a temperatura é cerca de 112.
+
+Para comparar este com o resultado dado no problema 3, em que vimos que a potência média será nula na temperatura de 132,45, temos que lembrar aquele era um resultado pontual. Aqui, estamos considerando o intervalo de confiança, que envolve o valor pontual mais ou menos uma amplitude.
 
 
 ## Problema 35
 
+Nesse caso, como não temos o dataset, não podemos usar a função `lm()` para fazer o ajuste do modelo. Em vez disso, vamos calcular as estimativas dos parâmetros "manualmente", como no exemplo 16.1:
+
+(a)
+
+```{r}
+n = 102
+sum_xi = 510
+sum_yi = 7140
+sum_xi2 = 4150
+sum_xiyi = 54900
+sum_yi2 = 740200
+xbar = 5
+ybar = 70
+
+beta_hat = (sum_xiyi - n*xbar*ybar)/(sum_xi2 - n*xbar^2)
+alpha_hat = ybar - beta_hat*xbar
+
+alpha_hat
+beta_hat
+```
+Logo, nosso modelo ajustado pode ser escrito como
+
+$$ \hat{y}_i = 10 + 12x_i $$
+
+(b) O valor de $\hat{\alpha}$ representa o valor de $\hat{y}$ quando $x = 0$, ou seja, a despesa estimada com viagem para viagens com duração zero é igual a 10 unidades. Já $\hat{\beta}$ significa a variação no custo médio médio da viagem quando incrementamos sua duração em 1 dia. Ou seja, se aumentamos em 1 dia a duração da viagem, aumentamos seu custo médio em 12 unidades.
+
+
+(c) Para responder a essa pergunta, temos que pensar em termos do intervalo de predição, já que estamos interessados em uma previsão pontual do gasto com a viagem, e não no gasto médio.
+
+Se a probabilidade de faltar dinheiro é de 10%, então estamos falando de um intervalo de predição com coeficiente de confiança igual a 80%. Dessa forma, o que precisamos fazer é calcular um intervalo de predição para $Y(x = 7)$, com $\gamma = 0,80$. Como não temos aqui a saída da função `lm()`, vamos ter que fazer "manualmente". Para tanto, precisamos usar os resultados do problema 29 para calcular a estimativa da variância dos resíduos $S_e^2$:
+
+
+$$s_y^2 = \frac{SQTot}{n-1} \Rightarrow SQTot = (n-1)*s_y^2 $$
+
+
+$$ \hat{\beta}^2 = \dfrac{SQReg}{(n-1) s_x^2} \Rightarrow SQReg = (n-1)s_x^2\hat{\beta^2}$$
+
+$$ SQRes = SQTot - SQReg $$
+$$ S_e = \dfrac{SQRes}{n-p} = \dfrac{SQRes}{n-2} $$
+
+```{r}
+sx = sqrt(sum_xi2/n - xbar^2)
+sy = sqrt(sum_yi2/n - ybar^2)
+SQReg = (n-1)*sx^2*beta_hat^2
+SQTot = (n-1)*sy^2
+SQRes = SQTot - SQReg
+se = sqrt(SQRes/(n-2))
+yhat = 10 + 12*7 #Despesa média estimada para x = 7
+IP = yhat + c(-1, 1)*qt(0.9, n-2)*se*sqrt(1 + 1/n + (7-xbar)^2/(sum_xi2-2*xbar*sum_xi+n*xbar^2))
+
+IP
+```
+
+
+Assim, podemos interpretar esse resultado da seguinte forma: Se repetirmos esse mesmo procedimento amostral um número grande de vezes, com o mesmo n, cerca de 20% dos intervalos de predição assim construídos não conterão o verdadeiro valor da despesa com a viagem de 7 dias. Consequentemente, em cerca de 10% dos previsões, a despesa estará acima de 106,92 unidades. Dessa forma, o número procurado é 106,92.
 
 
 
