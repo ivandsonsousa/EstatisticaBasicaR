@@ -1819,8 +1819,8 @@ dados não estejam de acordo com o modelo genético postulado.</p>
 <p>Para fazer um teste de aderência a partir da distribuição
 qui-quadrado com esses dados contínuos, precisamos antes categorizá-los.
 Faremos isso dividindo-os em 4 classes, definidas a partir dos quartis
-teóricos de uma <span class="math inline">\(N(30, 100\)</span>, conforme
-já fizemos no início deste relatório:</p>
+teóricos de uma <span class="math inline">\(N(30, 100)\)</span>,
+conforme já fizemos no início deste relatório:</p>
 <div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>q <span class="ot">=</span> <span class="fu">qnorm</span>(<span class="fu">c</span>(<span class="fl">0.25</span>, <span class="fl">0.50</span>, <span class="fl">0.75</span>), <span class="dv">30</span>, <span class="dv">10</span>)</span></code></pre></div>
 <p>Agora, vamos construir a distribuição de frequências dos dados
 observados dentro das categorias definidas pelos quartis da N(30,
@@ -1886,7 +1886,7 @@ serem comparados.</p>
 tabela de contingência rXs, podemos usar a função
 <code>chisq.test()</code>, usando como argumento uma matriz contendo os
 dados da tabela de contingência, para obter a estatística do teste e o
-p-valor:</p>
+p-valor.</p>
 <p>Temos que fornecer os dados no formato de uma tabela de dupla
 entrada. Para isso, primeiro admitimos as frequências observados como
 uma matriz. Em seguida, admitimos as categorias como os nomes das linhas

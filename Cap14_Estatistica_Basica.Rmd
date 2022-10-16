@@ -259,7 +259,7 @@ dados = c(15.9, 16.9, 18.3, 18.5, 19.0,
 
 Aqui, a hipótese nula é que os dados advêm de uma população $N(30, 100)$.
 
-Para fazer um teste de aderência a partir da distribuição qui-quadrado com esses dados contínuos, precisamos antes categorizá-los. Faremos isso dividindo-os em 4 classes, definidas a partir dos quartis teóricos de uma $N(30, 100$, conforme já fizemos no início deste relatório:
+Para fazer um teste de aderência a partir da distribuição qui-quadrado com esses dados contínuos, precisamos antes categorizá-los. Faremos isso dividindo-os em 4 classes, definidas a partir dos quartis teóricos de uma $N(30, 100)$, conforme já fizemos no início deste relatório:
 
 
 ```{r}
@@ -324,7 +324,7 @@ Na prática, esse teste é realizado de maneira muito semelhante ao teste de ade
 
 ## Exemplo 14.2: continuação (página 421)
 
-Aqui, como temos apenas as frequências observadas na forma de uma tabela de contingência rXs, podemos usar a função `chisq.test()`, usando como argumento uma matriz contendo os dados da tabela de contingência, para obter a estatística do teste e o p-valor:
+Aqui, como temos apenas as frequências observadas na forma de uma tabela de contingência rXs, podemos usar a função `chisq.test()`, usando como argumento uma matriz contendo os dados da tabela de contingência, para obter a estatística do teste e o p-valor.
 
 Temos que fornecer os dados no formato de uma tabela de dupla entrada. Para isso, primeiro admitimos as frequências observados como uma matriz. Em seguida, admitimos as categorias como os nomes das linhas e colunas. 
 
