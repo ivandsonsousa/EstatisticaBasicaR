@@ -464,7 +464,7 @@ Outro ponto interessante de ressaltar aqui é que a lógica desse teste é essen
 ## Problema 7
 
 
-Nesse caso, também vamos testar a homogeneidade das duas distribuições: notas para os método convencional e novo. Primeiro, vamos entrar com a tabela de dupla entrada:
+Nesse caso, também vamos testar a homogeneidade das duas distribuições: notas para os métodos convencional e novo. Primeiro, vamos entrar com a tabela de dupla entrada:
 
 
 ```{r}
@@ -615,12 +615,12 @@ $$ H_1: \exists (i, j) \mid p_{ij}  \neq p_i * p_j; \ i = 1, \ldots, r; j = 1, \
 chisq.test(tab)
 ```
 
-Como o p-valor resultou ser essencialmente igual a zero, decidimos por rejeitar a hipótese nula de independência entre as variável Estado e tipo de cooperativa. Portanto, concluímos que as variáveis Estado e tipo de cooperativa não são independentes. Em outras palavras, podemos dizer que a distribuição dos tipos de cooperativa é diferente ao longo dos estados.
+Como o p-valor resultou ser essencialmente igual a zero, decidimos por rejeitar a hipótese nula de independência entre as variáveis Estado e tipo de cooperativa. Portanto, concluímos que as variáveis Estado e tipo de cooperativa não são independentes. Em outras palavras, podemos dizer que a distribuição dos tipos de cooperativa é diferente ao longo dos estados.
 
 
 ## Problema 10
 
-Nesse caso, como o problema remete a dados de outro capítulo (cap. 4), 
+Nesse caso, como o problema remete a dados de outro capítulo (cap. 4), vamos recarregá-los.
 
 Uma amostra de 200 habitantes de uma cidade foi escolhida para declarar sua opinião sobre um certo projeto governamental. Verifique se a opinião dos moradores depende do local de residência.
 
@@ -820,7 +820,7 @@ Logo, concluímos que a opinião do entrevistado sobre a qualidade do produto de
 
 # Teste para o coeficiente de correlação
 
-Esse teste usa um estimador para o coeficiente de correlação entre dois conjuntos de dados. A distribuição utilizada é a t de Student. No R, é implementado por meio da função `cor.test()`. Os argumentos são os dois conjuntos de dados (numéricos). Um outro argumento que podemos indicar é o método para o cálculo do coeficiente de correlação entre os dois grupos: Pearson, Kendall ou Spearman.
+Esse teste usa um estimador para o coeficiente de correlação entre dois conjuntos de dados numéricos. A distribuição utilizada é a t de Student. No R, é implementado por meio da função `cor.test()`. Os argumentos são os dois conjuntos de dados (numéricos). Um outro argumento que podemos indicar é o método para o cálculo do coeficiente de correlação entre os dois grupos: Pearson, Kendall ou Spearman.
 
 ## Exemplo 14.10 
 
@@ -962,7 +962,7 @@ Logo, como p < 0.05, rejeitamos a hipótese nula de que a correlação entre as 
 
 ## Exemplo 14.6 (continuação: pág. 431)
 
-Aqui, queremos testar se o conjunto de dados apresentado foi ou não retirado de uma população com distribuiçãop normal:
+Aqui, queremos testar se o conjunto de dados apresentado foi ou não retirado de uma população com distribuição normal:
 
 $$ H_0: P = N(10, 25) $$
 $$ H_1: P \neq N(10, 25) $$
@@ -1009,7 +1009,7 @@ dados %>%
     title = "gráfico quantil-quantil para a amostra",
     subtitle = "Verificando a normalidade dos dados"
   ) + 
-  theme(text = element_text(size = 18))
+  theme(text = element_text(size = 16))
 ```
 
 Como podemos ver, o gráfico acima reforça o resultado já obtido por meio do teste de Kolmogorov-Smirnov.
@@ -1239,7 +1239,7 @@ p = 2*min(
 p
 ```
 
-Logo, como o p-valor resultou ser essencialmente igual a zero, rejeitamos a hipótese nula de que os dois coeficientes de correlação são iguais, ou seja, concluímos que os coeficiente são diferentes para as duas populações.
+Logo, como o p-valor resultou ser essencialmente igual a zero, rejeitamos a hipótese nula de que os dois coeficientes de correlação são iguais, ou seja, concluímos que os coeficientes são diferentes para as duas populações.
 
 
 ## Problema 26
