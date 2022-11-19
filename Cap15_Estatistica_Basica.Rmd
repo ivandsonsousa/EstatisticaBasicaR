@@ -68,14 +68,14 @@ tabela ANOVA.
 
 # Carregamento dos pacotes necessários
 
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE}
 library(dplyr)
 library(ggplot2)
 library(readxl)
 library(combinat)
 library(DescTools)
+library(kableExtra)
 ```
-
 
 # Exemplos e problemas do livro
 
@@ -188,7 +188,14 @@ $$ y_i = \bar{X} + e_i \Rightarrow e_i = y_i - \bar{X}$$
 
 ```{r}
 dados = mutate(dados, residuos = y - mean(y))
-dados
+
+dados %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+    )
 ```
 
 Vemos, portanto, que os resíduos possuem magnitude grande, de modo que esse modelo não parece apropriado.
@@ -609,7 +616,13 @@ grupos = dados %>%
   group_by(tipo_laje) %>%
   summarise(n = n(), xbar = mean(q_agua))
 
-grupos
+grupos %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+    )
 ```
 
 e o quantil da t-Student para o cálculo do intervalo de confiança de 95%, considerando o fator de correção de Bonferroni:
@@ -705,7 +718,13 @@ grupos = dados %>%
   group_by(processo) %>%
   summarise(n = n(), xbar = mean(q_absorvida))
 
-grupos
+grupos %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+    )
 ```
 
 Como vemos, temos 5 elementos em cada grupo. Agora, vamos calcular as grandezas necessárias para a construção dos IC's, que são: o número de grupos, o tamanho do conjunto de dados, o quantil da t-Student que acumula 95% de probabilidade no centro da distribuição e o desvio padrão amostral dos resíduos:
@@ -801,7 +820,13 @@ grupos = dados %>%
   group_by(metodo) %>%
   summarise(n = n(), xbar = mean(nota))
 
-grupos
+grupos %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+    )
 ```
 
 Desta vez, vamos determinar os IC's diretamente pela função `PostHocTest()`:
@@ -854,7 +879,13 @@ grupos = dados %>%
   group_by(embalagem) %>%
   summarise(n = n(), xbar = mean(vendas))
 
-grupos
+grupos %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+    )
 ```
 
 Vamos agora construir os intervalos de confiança 2 a 2 para a diferença de médias. Novamente, temos 3 grupos, de modo que existêm 3 comparações possíveis. Vamos aplicar a função `PostHocTest()` à nossa anova:
@@ -1024,7 +1055,13 @@ grupos = dados %>%
   group_by(livro) %>%
   summarise(n = n(), xbar = mean(numero_vezes))
 
-grupos
+grupos %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+    )
 ```
 
 
@@ -1090,7 +1127,13 @@ grupos = dados %>%
   group_by(turno) %>%
   summarise(n = n(), xbar = mean(desempenho))
 
-grupos
+grupos %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+    )
 ```
 
 Agora, vamos fazer as comparações propriamente ditas, por meio da função `PostHocTest()`:
@@ -1159,7 +1202,13 @@ grupos = dados %>%
   group_by(regime) %>%
   summarise(n = n(), xbar = mean(peso_perdido))
 
-grupos
+grupos %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+    )
 ```
 
 Agora, vamos comparar os pares de médias:
@@ -1192,7 +1241,14 @@ n = nrow(dados)
 grupos = dados %>%
   group_by(regime) %>%
   summarise(n = n(), s = sd(peso_perdido))
-grupos
+
+grupos %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+    )
 ```
 
 Agora, vamos calcular os valores de $M$ e de $C$:
@@ -1363,7 +1419,13 @@ Vamos ver qual variável está armazenando a idade:
 
 
 ```{r}
-head(dados)
+head(dados) %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+    )
 ```
 
 Agora, vamos transformá-la num fator:
@@ -1374,7 +1436,14 @@ dados = dados %>%
   mutate(
     X = as.factor(X)
   )
-head(dados)
+
+head(dados) %>%
+  kable() %>%
+  kable_styling(
+    full_width = F, 
+    bootstrap_options = c("striped", "hover", "condensed",
+                          "responsive")
+    )
 ```
 
 Aqui, a variável de interesse é o tempo de resposta a um estímulo visual, Y. Agora, vamos calcular o intervalo de predição pedido:

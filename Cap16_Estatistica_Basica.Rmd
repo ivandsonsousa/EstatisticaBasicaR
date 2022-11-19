@@ -35,7 +35,7 @@ Para o desenvolvimento dos exemplos e dos problemas deste capítulo, iremos util
 
 ## Carregamento dos pacotes necessários
 
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE}
 library(dplyr)
 library(ggplot2)
 library(readxl)
