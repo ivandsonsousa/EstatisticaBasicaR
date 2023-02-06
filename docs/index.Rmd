@@ -17,3 +17,69 @@ csl: abnt.csl
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = F, message = F)
 ```
+
+
+# Sobre o projeto 
+
+Neste livro, documentamos as soluções dos principais problemas do livro *Estatística Básica* [@bussab_morettin] usando o software R.
+
+O R é um poderoso software estatístico. Com ele, é possível fazer desde cálculos simples envolvendo distribuições de probabilidades e estatística descritiva até o desenvolvimento de modelos de machine learning. 
+
+A linguagem R foi desenvolvida na década de 90 por dois estatísticos Neozelandêses, Ross Ihaka e Robert Gentleman (daí o nome R). O R é um software livre e de código aberto. Atualmente possui uma vasta biblioteca de funções para cálculos estatísticos e possui uma grande comunidade que contribui com o projeto [@rproject].
+
+As distribuições linux geralmente já contêm o R. Para as demais, o software pode ser baixado através da página do projeto: <https://cran.r-project.org/>.
+
+O Rstudio, por sua vez, é uma IDE (Integrated Development Enviroment) ou Ambiente de Desenvolvimento Integrado. Genericamente falando, uma IDE é um programa que, com sua interface gráfica amigável (mais parecida com os programas voltados ao usuário comum), traz uma série de ferramentas que facilitam o desenvolvimento de aplicações. Algumas dessas ferramentas são compilador e um editor de código-fonte capaz de apontar erros e sugerir a sintáxe correta das funções [@wikipediaIDE]. 
+
+O Rstudio, a exemplo do R, também é um software gratuito e de código aberto. Porém, diferentemente do R, esta IDE possui também uma versão paga. Para baixar a ferramenta, basta acessar a página oficial: <https://posit.co/download/rstudio-desktop/>.
+
+
+# Capítulo 1
+
+
+# Capítulo 2
+
+
+# Capítulo 3
+
+
+# Capítulo 4
+
+
+# Capítulo 5
+
+
+# Capítulo 6
+
+
+# Capítulo 7
+
+
+# Capítulo 8
+
+
+# Capítulo 9
+
+
+# Capítulo 10
+
+
+# Capítulo 11
+
+
+# Capítulo 12
+
+
+# Capítulo 13
+
+
+# Capítulo 14
+
+
+# Capítulo 15
+
+
+# Capítulo 16
+
+
+# Referências
