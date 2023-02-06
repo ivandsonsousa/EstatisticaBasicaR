@@ -1,0 +1,19 @@
+---
+title: "Soluções do livro Estatística Básica com o R"
+author: "Ivandson Praeiro de Sousa"
+date: "05/02/2023"
+output:
+  rmdformats::readthedown
+  # html_document:
+  # number_sections: no
+  #   toc: yes
+  #   toc_float: yes
+  #   theme: cerulean
+  #   df_print: paged
+bibliography: bibliografia.bib
+csl: abnt.csl
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = F, message = F)
+```
