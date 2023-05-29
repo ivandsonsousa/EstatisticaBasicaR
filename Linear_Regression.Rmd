@@ -1,0 +1,129 @@
+---
+title: "Detalhes sobre Regressão Linear"
+output: html_notebook
+---
+
+Este é um estudo sobre regressão linear. Nele, tendo entender as nuances dessa metodologia de modelagem.
+
+
+## Regressão Linear Simples
+
+
+Inicialmente, vamos definir um conjunto de dados exemplo, o qual é facilmente manipulável. Podemos alterar a variância dos resíduos, por exemplo, e ver o comportamento resultante do $R^2$ do modelo.
+
+Podemos criar uma equação usando coeficientes conhecidos para calcular nossa variável y:
+
+```{r}
+set.seed(42)
+x <- rnorm(100)
+e <- rnorm(100, mean = 0, sd = 5)
+y <- 5 + 15 * x + e
+```
+
+Agora, vamos obter os coeficiente da regressão linear de $y$ sobre $x$:
+
+```{r}
+lm(y ~ x)
+```
+
+
+## Regressão Linear Múltipla
+
+
+Vamos configurar alguns exemplos de dados normais aleatórios usando a função `rnorm`:
+
+
+```{r}
+set.seed(42)
+u <- rnorm(100)
+v <- rnorm(100, mean = 3,  sd = 2)
+w <- rnorm(100, mean = -3, sd = 1)
+e <- rnorm(100, mean = 0,  sd = 3)
+```
+
+
+
+Então podemos criar uma equação usando coeficientes conhecidos para calcular nossa variável y:
+
+```{r}
+y <- 5 + 4 * u + 3 * v + 2 * w + e
+```
+
+A regressão linear múltipla é a generalização óbvia da regressão linear simples. Ele permite várias variáveis de previsão em vez de apenas uma, e ainda usa OLS para calcular os coeficientes de uma equação linear.
+
+E então, se executarmos uma regressão linear, podemos ver que o R resolve os coeficientes e fica bem próximo dos valores reais que acabamos de usar:
+
+
+```{r}
+lm(y ~ u + v + w)
+```
+
+
+## Obtendo as estatísticas da regressão
+
+`anova(m)`: Tabela ANOVA
+
+`coefficients(m)`: Coeficientes do modelo
+
+`coef(m)`: Igual acoefficients(m)
+
+`confint(m)`: Intervalos de confiança para os coeficientes de regressão
+
+`deviance(m)`: soma residual dos quadrados
+
+`effects(m)`: Vetor de efeitos ortogonais
+
+`fitted(m)`: Vetor de valores y ajustados
+
+`residuals(m)`: Resíduos do modelo
+
+`resid(m)`: Igual aresiduals(m)
+
+`summary(m)`: Estatísticas chave, como R 2 , a estatística F e o erro padrão residual ( σ )
+
+`vcov(m)`: Matriz de variância-covariância dos principais parâmetros
+
+
+A função `lm` retorna um objeto modelo que você pode atribuir a uma variável:
+
+
+```{r}
+m <- lm(y ~ u + v + w)
+```
+
+Do objeto modelo, você pode extrair informações importantes usando funções especializadas. A função mais importante é `summary`:
+
+
+```{r}
+summary(m)
+```
+
+
+Vamos obter a tabela ANOVA do modelo simples:
+
+
+```{r}
+anova(lm(y ~ x))
+```
+
+
+Agora, para o modelo com múltiplas variáveis:
+
+
+```{r}
+anova(lm(y ~ u + v + w))
+```
+
+
+```{r}
+df = data.frame(y, u, v, w)
+olsrr::ols_regress(y ~ ., data = df)
+```
+
+
+## Atenção: Outras funções matemáticas
+
+```{r}
+lm(y ~ x + I(x^2))
+```
+
